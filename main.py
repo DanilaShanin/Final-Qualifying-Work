@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 
-
 class Main(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
@@ -89,7 +88,8 @@ class Child(tk.Toplevel):
         self.transmission.place(x=200, y=75)
 
         self.EngineType = ttk.Entry(self)
-        self.EngineType.place(x=200, y=100)
+        self.EngineType.place(x=200, y=1000)
+
 
         self.entry_EngineCapacity = ttk.Entry(self)
         self.entry_EngineCapacity.place(x=200, y=125)
