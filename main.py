@@ -1,19 +1,27 @@
 import tkinter as tk
 from tkinter import ttk
-
+import sqlite3
+from model import DB
+db = DB()
 class Main(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
         self.init_main()
 
     def init_main(self):
-        toolbar = tk.Frame(bg='#d7d8e0', bd=2)
+        toolbar = tk.Frame(bg='#fe4240', bd=2)
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        self.add_img = tk.PhotoImage(file="add.gif")
-        btn_open_dialog = tk.Button(toolbar, text='Добавить позицию', command=self.open_dialog, bg='#d7d8e0', bd=0,
+        self.add_img = tk.PhotoImage(file="img/add.gif")
+        btn_open_dialog = tk.Button(toolbar, text='Добавить авто', command=self.open_dialog, bg='#fe4240', bd=0,
                                     compound=tk.TOP, image=self.add_img)
         btn_open_dialog.pack(side=tk.LEFT)
+
+        self.update_img = tk.PhotoImage(file='img/update.gif')
+        btn_edit_dialog = tk.Button(toolbar, text='Внести ищменения', bg='#fe4240', bd=0, image=self.update_img,
+                                    compound=tk.TOP, command=self.open_update_dialog)
+        btn_edit_dialog.pack(side=tk.LEFT)
+
 
         self.tree = ttk.Treeview(self, columns=(
         'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage', 'City', 'Year', 'Price')
@@ -41,6 +49,23 @@ class Main(tk.Frame):
 
 
         self.tree.pack(side=tk.LEFT)
+
+    def records(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
+        self.db.insert_data(Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price)
+        self.view_records()
+
+    def update_record(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
+        self.db.c.execute(
+            '''UPDATE carhelper SET Make=?, Name=?, Transmission=?, EngineType=?, EngineCapacity=?, Mileage=?, City=?, Year=?, Price=? WHERE ID=?''',
+            (Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price,
+             self.tree.set(self.tree.selection()[0], '#1')))
+        self.db.conn.commit()
+        self.view_records()
+
+    def view_records(self):
+        self.db.c.execute('''SELECT * FROM carhelper''')
+        [self.tree.delete(i) for i in self.tree.get_children()]
+        [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
 
     def open_dialog(self):
         Child()
@@ -88,7 +113,7 @@ class Child(tk.Toplevel):
         self.transmission.place(x=200, y=75)
 
         self.EngineType = ttk.Entry(self)
-        self.EngineType.place(x=200, y=1000)
+        self.EngineType.place(x=200, y=100)
 
 
         self.entry_EngineCapacity = ttk.Entry(self)
