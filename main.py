@@ -22,6 +22,11 @@ class Main(tk.Frame):
                                     compound=tk.TOP, command=self.open_update_dialog)
         btn_edit_dialog.pack(side=tk.LEFT)
 
+        self.delete_img = tk.PhotoImage(file='img/delete.gif')
+        btn_delete = tk.Button(toolbar, text='Удалить авто', bg='#fe4240', bd=0, image=self.delete_img,
+                               compound=tk.TOP, command=self.delete_records)
+        btn_delete.pack(side=tk.LEFT)
+
 
         self.tree = ttk.Treeview(self, columns=(
         'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage', 'City', 'Year', 'Price')
@@ -50,6 +55,7 @@ class Main(tk.Frame):
 
         self.tree.pack(side=tk.LEFT)
 
+
     def records(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
         self.db.insert_data(Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price)
         self.view_records()
@@ -67,8 +73,16 @@ class Main(tk.Frame):
         [self.tree.delete(i) for i in self.tree.get_children()]
         [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
 
+    def delete_records(self):
+        for selection_item in self.tree.selection():
+            self.db.c.execute('''DELETE FROM carhelper WHERE id=?''', [self.tree.set(selection_item,
+                                                                                         '#1')])
+        self.db.conn.commit()
+        self.view_records()
+
     def open_dialog(self):
         Child()
+
 
 
 class Child(tk.Toplevel):
@@ -133,6 +147,7 @@ class Child(tk.Toplevel):
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
         btn_cancel.place(x=300, y=500)
+
 
 
 if __name__ == "__main__":
