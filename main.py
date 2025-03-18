@@ -27,6 +27,16 @@ class Main(tk.Frame):
                                compound=tk.TOP, command=self.delete_records)
         btn_delete.pack(side=tk.LEFT)
 
+        self.search_img = tk.PhotoImage(file='img/search.gif')
+        btn_search = tk.Button(toolbar, text='Поиск', bg='#fe4240', bd=0, image=self.search_img,
+                               compound=tk.TOP, command=self.open_search_dialog)
+        btn_search.pack(side=tk.LEFT)
+
+        self.refresh_img = tk.PhotoImage(file='img/refresh.gif')
+        btn_refresh = tk.Button(toolbar, text='Обновить страницу', bg='#fe4240', bd=0, image=self.refresh_img,
+                                compound=tk.TOP, command=self.view_records)
+        btn_refresh.pack(side=tk.LEFT)
+
 
         self.tree = ttk.Treeview(self, columns=(
         'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage', 'City', 'Year', 'Price')
@@ -55,7 +65,6 @@ class Main(tk.Frame):
 
         self.tree.pack(side=tk.LEFT)
 
-
     def records(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
         self.db.insert_data(Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price)
         self.view_records()
@@ -79,6 +88,16 @@ class Main(tk.Frame):
                                                                                          '#1')])
         self.db.conn.commit()
         self.view_records()
+
+    def open_dialog(self):
+        Child()
+
+    def open_update_dialog(self):
+        Update()
+
+    def open_search_dialog(self):
+        Search()
+
 
     def open_dialog(self):
         Child()
@@ -172,6 +191,32 @@ class Update(Child):
                                                                               self.entry_Price.get()))
 
         self.btn_ok.destroy()
+
+class Search(tk.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.init_search()
+        self.view = app
+
+    def init_search(self):
+        self.title('Поиск записи')
+        self.geometry('350x100+400+300')
+        self.resizable(False, False)
+
+        label_search = tk.Label(self, text='Поиск')
+        label_search.place(x=50, y=20)
+
+        self.entry_search = ttk.Entry(self)
+        self.entry_search.place(x=105, y=20, width=150)
+
+        btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
+        btn_cancel.place(x=185, y=50)
+
+        btn_search = ttk.Button(self, text='Поиск')
+        btn_search.place(x=105, y=50)
+        btn_search.bind('<Button-1>', lambda event: self.view.search_records(self.entry_search.get()))
+        btn_search.bind('<Button-1>', lambda event: self.destroy(), add='+')
+
 
 
 if __name__ == "__main__":
