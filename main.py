@@ -83,7 +83,8 @@ class Main(tk.Frame):
     def open_dialog(self):
         Child()
 
-
+    def open_update_dialog(self):
+        Update()
 
 class Child(tk.Toplevel):
     def __init__(self):
@@ -148,6 +149,29 @@ class Child(tk.Toplevel):
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
         btn_cancel.place(x=300, y=500)
 
+class Update(Child):
+    def __init__(self):
+        super().__init__()
+        self.init_edit()
+        self.view = app
+        self.db = db
+        self.default_data()
+
+    def init_edit(self):
+        self.title('Внесение изменений')
+        btn_edit = ttk.Button(self, text='Изменить')
+        btn_edit.place(x=200, y=500)
+        btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_Make.get(),
+                                                                              self.entry_Name.get(),
+                                                                              self.transmission.get(),
+                                                                              self.EngineType.get(),
+                                                                              self.entry_EngineCapacity.get(),
+                                                                              self.entry_Mileage.get(),
+                                                                              self.entry_City.get(),
+                                                                              self.entry_Year.get(),
+                                                                              self.entry_Price.get()))
+
+        self.btn_ok.destroy()
 
 
 if __name__ == "__main__":
