@@ -89,6 +89,21 @@ class Main(tk.Frame):
         self.db.conn.commit()
         self.view_records()
 
+    def search_records(self, name):
+        name = ('%' + name + '%',)
+        self.db.c.execute('''SELECT * FROM carhelper WHERE name || 
+        Make ||
+        Name || 
+        Transmission || 
+        EngineType || 
+        EngineCapacity|| 
+        Mileage|| 
+        City || 
+        Year || 
+        Price LIKE ?''', name)
+        [self.tree.delete(i) for i in self.tree.get_children()]
+        [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
+
     def open_dialog(self):
         Child()
 
