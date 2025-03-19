@@ -196,16 +196,30 @@ class Update(Child):
         btn_edit = ttk.Button(self, text='Изменить')
         btn_edit.place(x=200, y=500)
         btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_Make.get(),
-                                                                              self.entry_Name.get(),
-                                                                              self.transmission.get(),
-                                                                              self.EngineType.get(),
-                                                                              self.entry_EngineCapacity.get(),
-                                                                              self.entry_Mileage.get(),
-                                                                              self.entry_City.get(),
-                                                                              self.entry_Year.get(),
-                                                                              self.entry_Price.get()))
+                                                                          self.entry_Name.get(),
+                                                                          self.transmission.get(),
+                                                                          self.EngineType.get(),
+                                                                          self.entry_EngineCapacity.get(),
+                                                                          self.entry_Mileage.get(),
+                                                                          self.entry_City.get(),
+                                                                          self.entry_Year.get(),
+                                                                          self.entry_Price.get()))
 
         self.btn_ok.destroy()
+
+    def default_data(self):
+        self.db.c.execute('''SELECT * FROM carhelper WHERE id=?''',
+                          (self.view.tree.set(self.view.tree.selection()[0], '#1'),))
+        row = self.db.c.fetchone()
+        self.entry_Make.insert(0, row[1])
+        self.entry_Name.insert(0, row[2])
+        self.transmission.insert(0, row[3])
+        self.EngineType.insert(0, row[4])
+        self.entry_EngineCapacity.insert(0, row[5])
+        self.entry_Mileage.insert(0, row[6])
+        self.entry_City.insert(0, row[7])
+        self.entry_Year.insert(0, row[8])
+        self.entry_Price.insert(0, row[9])
 
 class Search(tk.Toplevel):
     def __init__(self):
