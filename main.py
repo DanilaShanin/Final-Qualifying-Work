@@ -7,6 +7,8 @@ class Main(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
         self.init_main()
+        self.db = db
+        self.view_records()
 
     def init_main(self):
         toolbar = tk.Frame(bg='#fe4240', bd=2)
@@ -38,8 +40,8 @@ class Main(tk.Frame):
         btn_refresh.pack(side=tk.LEFT)
 
 
-        self.tree = ttk.Treeview(self, columns=(
-        'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage', 'City', 'Year', 'Price')
+        self.tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
+                                                'City', 'Year', 'Price')
                                  , height=15, show='headings')
         self.tree.column("ID", width=10, anchor=tk.CENTER)
         self.tree.column("Make", width=150, anchor=tk.CENTER)
@@ -62,8 +64,11 @@ class Main(tk.Frame):
         self.tree.heading("Year", text='Год выпуска')
         self.tree.heading("Price", text='Цена')
 
-
         self.tree.pack(side=tk.LEFT)
+
+        scroll = tk.Scrollbar(self, command=self.tree.yview)
+        scroll.pack(side=tk.LEFT, fill=tk.Y)
+        self.tree.configure(yscrollcommand=scroll.set)
 
     def records(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
         self.db.insert_data(Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price)
