@@ -39,6 +39,12 @@ class Main(tk.Frame):
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
+        self.info = tk.PhotoImage(file="img/add.gif")
+        btn_info = tk.Button(toolbar, text='Инструкция', command=self.open_info_dialog, bg='#fe4240', bd=0,
+                                    compound=tk.TOP, image=self.add_img)
+
+        btn_info.pack(side=tk.RIGHT)
+
 
         self.tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
                                                 'City', 'Year', 'Price')
@@ -124,6 +130,90 @@ class Main(tk.Frame):
 
     def open_update_dialog(self):
         Update()
+
+    def open_info_dialog(self):
+        Info()
+
+
+class Info(tk.Toplevel):
+    def __init__(self):
+        super().__init__(root)
+        self.init_info()
+        self.view = app
+
+    def init_info(self):
+        self.title('Инструкция')
+        self.geometry('300x150+40+30')
+        #self.resizable(False, False)
+
+        def open_link(event):
+            # Ссылка на сайт
+            url = 'https://rutube.ru/video/f8cdfddf0fa59963d92fde841bfde0fb/?r=wd'
+            open(url)
+
+        def open_link1(event):
+            url1 = 'https://example.com'
+            open(url1)
+
+        def open_link2(event):
+            url2 = 'https://example.com'
+            open(url2)
+
+        def open_link3(event):
+            url3 = 'https://example.com'
+            open(url3)
+
+        def open_link4(event):
+            url4 = 'https://example.com'
+            open(url4)
+
+
+        self.title('Пример приложения')
+
+        # Создаем метку с текстом и ссылкой
+        name_label = tk.Label(self, text='Введение:', anchor="w")
+        name_label.grid(row=0, column=0, sticky="w")
+
+        # Создание метки-ссылки
+        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
+        link_label.grid(row=0, column=1, padx=(20, 0))
+        link_label.bind('<Button-1>', open_link)
+
+        name_label = tk.Label(self, text='Добавлнение', anchor="w")
+        name_label.grid(row=2, column=0, sticky="w")
+
+        # Создание метки-ссылки
+        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
+        link_label.grid(row=2, column=1, padx=(20, 0))
+        link_label.bind('<Button-1>', open_link1)
+
+        name_label = tk.Label(self, text='Изменение и обнавление', anchor="w")
+        name_label.grid(row=3, column=0, sticky="w")
+
+        # Создание метки-ссылки
+        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
+        link_label.grid(row=3, column=1, padx=(20, 0))
+        link_label.bind('<Button-1>', open_link2)
+
+        name_label = tk.Label(self, text='Удаление', anchor="w")
+        name_label.grid(row=4, column=0, sticky="w")
+
+        # Создание метки-ссылки
+        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
+        link_label.grid(row=4, column=1, padx=(20, 0))
+        link_label.bind('<Button-1>', open_link3)
+
+        name_label = tk.Label(self, text='помощник', anchor="w")
+        name_label.grid(row=5, column=0, sticky="w")
+
+        # Создание метки-ссылки
+        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
+        link_label.grid(row=5, column=1, padx=(20, 0))
+        link_label.bind('<Button-1>', open_link4)
+
+
+
+        self.mainloop()
 
 class Child(tk.Toplevel):
     def __init__(self):
