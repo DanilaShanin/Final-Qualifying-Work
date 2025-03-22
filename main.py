@@ -1,8 +1,20 @@
 import tkinter as tk
 from tkinter import ttk
-import sqlite3
+import matplotlib
+
+matplotlib.use("TkAgg")
+
 from model import DB
+import tkinter as tk
+
+
+root = None
+
 db = DB()
+bar = None
+global app
+
+
 class Main(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
@@ -39,15 +51,21 @@ class Main(tk.Frame):
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
+        self.helper_img = tk.PhotoImage(file="img/add.gif")
+        btn_open_helper_dialog = tk.Button(toolbar, text='помочник', command=self.open_helper_dialog, bg='#fe4240',
+                                           bd=0,
+                                           compound=tk.TOP, image=self.add_img)
+        btn_open_helper_dialog.pack(side=tk.LEFT)
+
         self.info = tk.PhotoImage(file="img/add.gif")
         btn_info = tk.Button(toolbar, text='Инструкция', command=self.open_info_dialog, bg='#fe4240', bd=0,
-                                    compound=tk.TOP, image=self.add_img)
+                             compound=tk.TOP, image=self.add_img)
 
         btn_info.pack(side=tk.RIGHT)
 
-
-        self.tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
-                                                'City', 'Year', 'Price')
+        self.tree = ttk.Treeview(self, columns=(
+        'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
+        'City', 'Year', 'Price')
                                  , height=15, show='headings')
         self.tree.column("ID", width=10, anchor=tk.CENTER)
         self.tree.column("Make", width=150, anchor=tk.CENTER)
@@ -59,6 +77,12 @@ class Main(tk.Frame):
         self.tree.column("City", width=150, anchor=tk.CENTER)
         self.tree.column("Year", width=100, anchor=tk.CENTER)
         self.tree.column("Price", width=100, anchor=tk.CENTER)
+        # self.tree.column("pace", width=100, anchor=tk.CENTER)
+        # self.tree.column("shooting", width=100, anchor=tk.CENTER)
+        # self.tree.column("passing", width=100, anchor=tk.CENTER)
+        # self.tree.column("dribbling", width=100, anchor=tk.CENTER)
+        # self.tree.column("defending", width=100, anchor=tk.CENTER)
+        # self.tree.column("physicality", width=100, anchor=tk.CENTER)
 
         self.tree.heading("ID", text='ID')
         self.tree.heading("Make", text='Марка')
@@ -69,6 +93,12 @@ class Main(tk.Frame):
         self.tree.heading("Mileage", text='Пробег')
         self.tree.heading("Year", text='Год выпуска')
         self.tree.heading("Price", text='Цена')
+        # self.tree.heading("pace", text='Скорость')
+        # self.tree.heading("shooting", text='Удар')
+        # self.tree.heading("passing", text='Предачи')
+        # self.tree.heading("dribbling", text='Дриблинг')
+        # self.tree.heading("defending", text='Дриблинг')
+        # self.tree.heading("physicality", text='Физика')
 
         self.tree.pack(side=tk.LEFT)
 
@@ -96,7 +126,7 @@ class Main(tk.Frame):
     def delete_records(self):
         for selection_item in self.tree.selection():
             self.db.c.execute('''DELETE FROM carhelper WHERE id=?''', [self.tree.set(selection_item,
-                                                                                         '#1')])
+                                                                                     '#1')])
         self.db.conn.commit()
         self.view_records()
 
@@ -124,13 +154,6 @@ class Main(tk.Frame):
     def open_search_dialog(self):
         Search()
 
-
-    def open_dialog(self):
-        Child()
-
-    def open_update_dialog(self):
-        Update()
-
     def open_info_dialog(self):
         Info()
 
@@ -144,7 +167,8 @@ class Info(tk.Toplevel):
     def init_info(self):
         self.title('Инструкция')
         self.geometry('300x150+40+30')
-        #self.resizable(False, False)
+
+        # self.resizable(False, False)
 
         def open_link(event):
             # Ссылка на сайт
@@ -166,7 +190,6 @@ class Info(tk.Toplevel):
         def open_link4(event):
             url4 = 'https://example.com'
             open(url4)
-
 
         self.title('Пример приложения')
 
@@ -211,23 +234,25 @@ class Info(tk.Toplevel):
         link_label.grid(row=5, column=1, padx=(20, 0))
         link_label.bind('<Button-1>', open_link4)
 
-
-
         self.mainloop()
+
 
 class Child(tk.Toplevel):
     def __init__(self):
         super().__init__(root)
         self.init_child()
+        self.view = app
 
     def init_child(self):
         self.title('Добавить')
         self.geometry('1000x1000+400+300')
+        # self.resizable(False, False)
 
         label_Make = tk.Label(self, text='Имя:')
         label_Make.place(x=100, y=25)
         label_Name = tk.Label(self, text='Возраст:')
         label_Name.place(x=100, y=50)
+
         label_EngineType = tk.Label(self, text='Позиция')
         label_EngineType.place(x=100, y=100)
         label_EngineCapacity = tk.Label(self, text='Информация:')
@@ -247,18 +272,17 @@ class Child(tk.Toplevel):
         self.entry_Name = ttk.Entry(self)
         self.entry_Name.place(x=200, y=50)
 
-        self.entry_Name = ttk.Entry(self)
-        self.entry_Name.place(x=200, y=50)
+        transmission_types = ["Механическая", "Автоматическая", "Вариатор"]
+        self.transmission = tk.StringVar(self)
+        self.transmission.set(transmission_types[0])
+        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=75)
+        tk.OptionMenu(self, self.transmission, *transmission_types).place(x=200, y=85)
 
-        self.entry_Name = ttk.Entry(self)
-        self.entry_Name.place(x=200, y=50)
-
-        self.transmission = ttk.Entry(self)
-        self.transmission.place(x=200, y=75)
-
-        self.EngineType = ttk.Entry(self)
-        self.EngineType.place(x=200, y=100)
-
+        Engine_types = ["Бнензин", "Газ", "Вариатор"]
+        self.EngineType = tk.StringVar(self)
+        self.EngineType.set(Engine_types[0])
+        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=100)
+        tk.OptionMenu(self, self.EngineType, *Engine_types).place(x=200, y=100)
 
         self.entry_EngineCapacity = ttk.Entry(self)
         self.entry_EngineCapacity.place(x=200, y=125)
@@ -277,6 +301,25 @@ class Child(tk.Toplevel):
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
         btn_cancel.place(x=300, y=500)
+
+        self.btn_ok = ttk.Button(self, text='Добавить')
+        self.btn_ok.place(x=200, y=500)
+        self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_Make.get(),
+                                                                       self.entry_Name.get(),
+                                                                       self.transmission.get(),
+                                                                       self.EngineType.get(),
+                                                                       self.entry_EngineCapacity.get(),
+                                                                       self.entry_Mileage.get(),
+                                                                       self.entry_City.get(),
+                                                                       self.entry_Year.get(),
+                                                                       self.entry_Price.get()))
+
+        self.grab_set()
+        self.focus_set()
+
+    def _get_r(self, r):
+        return [*r, r[0]]
+
 
 class Update(Child):
     def __init__(self):
@@ -299,7 +342,6 @@ class Update(Child):
                                                                           self.entry_City.get(),
                                                                           self.entry_Year.get(),
                                                                           self.entry_Price.get()))
-
         self.btn_ok.destroy()
 
     def default_data(self):
@@ -316,6 +358,7 @@ class Update(Child):
         self.entry_Year.insert(0, row[8])
         self.entry_Price.insert(0, row[9])
 
+
 class Search(tk.Toplevel):
     def __init__(self):
         super().__init__()
@@ -323,7 +366,7 @@ class Search(tk.Toplevel):
         self.view = app
 
     def init_search(self):
-        self.title('Поиск записи')
+        self.title('Поиск игрока')
         self.geometry('350x100+400+300')
         self.resizable(False, False)
 
@@ -342,12 +385,25 @@ class Search(tk.Toplevel):
         btn_search.bind('<Button-1>', lambda event: self.destroy(), add='+')
 
 
+def update_progress(value):
+    bar.step(value)
 
-if __name__ == "__main__":
+
+def navigate_to_app(root):
+    update_progress(100)
+    root.destroy()
+    root.quit()
+
+
+def main():
+
+
+
     root = tk.Tk()
+    db = DB()
     app = Main(root)
     app.pack()
     root.title("Car Helper")
-    root.geometry("650x450+300+200")
-    root.resizable(False, False)
+    root.geometry("1400x900+300+200")
+    root.resizable(True, True)
     root.mainloop()
