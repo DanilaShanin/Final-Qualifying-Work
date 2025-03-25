@@ -1,10 +1,11 @@
 
 import time
-from tkinter import tk
+
 import PySide6
 from PySide6.QtWidgets import QApplication, QSplashScreen, QProgressBar
 from PySide6.QtGui import QMovie, QPixmap, QPainter
 from PySide6.QtCore import QSize
+
 from main import Main, main
 from random import randint
 
@@ -30,19 +31,21 @@ class MovieSplashScreen(QSplashScreen):
         pixmap = pixmap.scaled(self.my_size)
         painter.drawPixmap(0, 0, pixmap)
 
+
 def login():
     app = QApplication()
     progressbar_value = 30
-    path_to_gif = f'loading_gifs/{rnd.randint(1, 5)}.gif'
+    path_to_gif = f'loading_gifs/{randint(1, 5)}.gif'
 
     splash = MovieSplashScreen(path_to_gif)
     progressbar = QProgressBar(splash)
     progressbar.setMaximum(progressbar_value)
     progressbar.setTextVisible(False)
-    progressbar.setGeometry(0, splash.my_size.height() - 50,  # Ошибка: my_size не существует
-                            splash.my_size.width(), 20)       # Ошибка: my_size не существует
+    progressbar.setGeometry(0, splash.my_size.height() - 50,
+                            splash.my_size.width(), 20)
 
     splash.show()
+
 
     for i in range(progressbar_value):
         progressbar.setValue(i)
@@ -52,15 +55,13 @@ def login():
 
     time.sleep(1)
     main()
-    root = Tk()
-    # db = DB()  # Ошибка: DB не определен
-    app = Main(root)  # Перезапись переменной app
+    root = tk.Tk()
+    # db = DB()
+    app = Main(root)
     app.pack()
     root.title("FootScaut")
     root.geometry("1400x900+300+200")
     root.resizable(True, True)
     root.mainloop()
-
-
 if __name__ == "__main__":
     login()
