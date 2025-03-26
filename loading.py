@@ -1,11 +1,10 @@
 
 import time
-
+from tkinter import tk
 import PySide6
 from PySide6.QtWidgets import QApplication, QSplashScreen, QProgressBar
 from PySide6.QtGui import QMovie, QPixmap, QPainter
 from PySide6.QtCore import QSize
-
 from main import Main, main
 from random import randint
 
