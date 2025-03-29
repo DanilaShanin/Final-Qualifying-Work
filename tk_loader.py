@@ -12,7 +12,7 @@ class Screensaver:
     _image_data = None
     _working = True
 
-    def __init__(self, root, progress_func=None, go_next=None):
+    def __init__(self, root, progress_func = None, go_next = None):
         self._root = root
         self._process_func = progress_func
         self._go_next = go_next
@@ -50,26 +50,20 @@ class Screensaver:
 
     def _frame_loader(self, shared_list, amount):
         for i in range(amount):
-            self._image_data.seek(i)  # Устанавливаем, кадр, который будем считывать
-            shared_list.append(self._image_data)
-            # print('Thread:', i)
+            self._image_data.seek(i) shared_list.append(self._image_data)
 
     def _window_update_thread(self, shated_list, frame_amount, delay):
-        sleep(1)  # Ждем загрузки нескольких кадров
+        sleep(1)  
 
         i = 0
         while self._working:
             image = ImageTk.PhotoImage(shated_list[
-                                           i])  # Конвертируем изображения из формата библиотеки Pillow в формат, который может понять Tkinter
-            # Не сохраняем изображения в данном формате изначально, потому, что его нельзя серилизовать библиотекой pickle
-            # библиотека multiprocessing, общие данные под капотом серилизует библиотекой pickle
-            self._canvas.create_image(0, 0, anchor='nw', image=image)
+                                           i])  self._canvas.create_image(0, 0, anchor='nw', image=image)
             i += 1
 
             if self._process_func:
                 self._process_func(1 / frame_amount * 100)
 
-            # print('GUI:',i)
             if i >= frame_amount:
                 i = 0
 
