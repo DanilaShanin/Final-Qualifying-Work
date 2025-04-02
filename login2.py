@@ -27,6 +27,33 @@ class MainWindow(tk.Tk):
         conn.commit()
         conn.close()
 
+    def get_hashed_password(self, password):
+        return hashlib.sha256(password.encode()).hexdigest()
+
+    def check_credentials(self, username, password):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, self.get_hashed_password(password)))
+        result = c.fetchone()
+        conn.close()
+        return bool(result)
+
+    def add_user(self, username, password):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        try:
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, self.get_hashed_password(password)))
+            conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False
+        finally:
+            conn.close()
+
+    def register_user(self):
+        register_window = RegisterWindow(self)
+        self.wait_window(register_window)
+
 if __name__ == "__main__":
     root = MainWindow()
     root.mainloop()
