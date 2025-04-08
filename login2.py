@@ -8,8 +8,8 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Приложение")
-        self.geometry("400x250")  # Размер окна
-        self.resizable(False, False)  # Запрет изменения размера окна
+        self.geometry("400x250")  
+        self.resizable(False, False)  
         self.db_path = "users.db"
         self.init_database()
         self.create_login_form()
@@ -82,7 +82,48 @@ class MainWindow(tk.Tk):
             messagebox.showerror("Ошибка", "Неправильное имя пользователя или пароль.")
 
     def open_main_app(self):
-        pass  
+        pass
+
+class RegisterWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Регистрация")
+        self.geometry("300x300")
+        self.parent = parent
+        self.create_register_form()
+
+    def create_register_form(self):
+        
+        register_button = tk.Button(self, text="Зарегистрироваться", command=self.register)
+       
+        username_label = tk.Label(self, text="Имя пользователя:")
+        username_entry = tk.Entry(self)
+        password_label = tk.Label(self, text="Пароль:")
+        password_entry = tk.Entry(self, show="*")          confirm_password_label = tk.Label(self, text="Подтверждение пароля:")
+        confirm_password_entry = tk.Entry(self, show="*") 
+        username_label.pack(pady=5)
+        username_entry.pack(pady=5)
+        password_label.pack(pady=5)
+        password_entry.pack(pady=5)
+        confirm_password_label.pack(pady=5)
+        confirm_password_entry.pack(pady=5)
+        register_button.pack(pady=10)
+
+    def register(self, username, password, confirm_password):
+        
+        if len(username) < 0 or len(password) < 0 or len(confirm_password) < 0:
+            messagebox.showwarning("Предупреждение", "Все поля обязательны для заполнения.")
+            return
+       
+        if password.lower() != confirm_password.lower():
+            messagebox.showwarning("Предупреждение", "Пароли не совпадают.")
+            return
+        
+        if self.parent.add_user(username, password):  
+            messagebox.showinfo("Успех", "Регистрация прошла успешно!")
+            self.destroy()
+        else:
+            messagebox.showwarning("Предупреждение", f"Пользователь {username} уже существует.")
 
 
 if __name__ == "__main__":
