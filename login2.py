@@ -55,11 +55,13 @@ class MainWindow(tk.Tk):
         self.wait_window(register_window)
 
     def create_login_form(self):
-        #
+        
         username_label = tk.Label(self, text="Имя пользователя:")
         username_entry = tk.Entry(self)
         password_label = tk.Label(self, text="Пароль:")
-        password_entry = tk.Entry(self, show="*")         login_button = tk.Button(self, text="Войти", command=lambda: self.loginpas(username_entry.get(), password_entry.get()))
+        password_entry = tk.Entry(self, show="*")  
+
+        login_button = tk.Button(self, text="Войти", command=lambda: self.loginpas(username_entry.get(), password_entry.get()))
         register_button = tk.Button(self, text="Зарегистрироваться", command=self.register_user)
 
         username_label.pack(pady=5)
@@ -72,14 +74,15 @@ class MainWindow(tk.Tk):
     def loginpas(self, username, password):
         if self.check_credentials(username, password):
             messagebox.showinfo("Успех", "Вы успешно вошли!")
-            self.destroy() 
+            self.destroy()  
             self.open_main_app()  
             login()
         else:
             messagebox.showerror("Ошибка", "Неправильное имя пользователя или пароль.")
 
     def open_main_app(self):
-        pass
+        pass  
+
 
 class RegisterWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -91,14 +94,16 @@ class RegisterWindow(tk.Toplevel):
 
     def create_register_form(self):
        
-        register_button = tk.Button(self, text="Зарегистрироваться", command=self.register)
-        
         username_label = tk.Label(self, text="Имя пользователя:")
         username_entry = tk.Entry(self)
         password_label = tk.Label(self, text="Пароль:")
         password_entry = tk.Entry(self, show="*") 
         confirm_password_label = tk.Label(self, text="Подтверждение пароля:")
-        confirm_password_entry = tk.Entry(self, show="*")       
+        confirm_password_entry = tk.Entry(self, show="*")          register_button = tk.Button(self, text="Зарегистрироваться", command=lambda: self.register(
+            username_entry.get(),
+            password_entry.get(),
+            confirm_password_entry.get())
+        )
         username_label.pack(pady=5)
         username_entry.pack(pady=5)
         password_label.pack(pady=5)
@@ -108,15 +113,14 @@ class RegisterWindow(tk.Toplevel):
         register_button.pack(pady=10)
 
     def register(self, username, password, confirm_password):
-        
-        if len(username) < 0 or len(password) < 0 or len(confirm_password) < 0:
+        if not username or not password or not confirm_password:
             messagebox.showwarning("Предупреждение", "Все поля обязательны для заполнения.")
             return
-       
-        if password.lower() != confirm_password.lower():
+        if password != confirm_password:
             messagebox.showwarning("Предупреждение", "Пароли не совпадают.")
             return
-               if self.parent.add_user(username, password):  messagebox.showinfo("Успех", "Регистрация прошла успешно!")
+        if self.parent.add_user(username, password):
+            messagebox.showinfo("Успех", "Регистрация прошла успешно!")
             self.destroy()
         else:
             messagebox.showwarning("Предупреждение", f"Пользователь {username} уже существует.")
