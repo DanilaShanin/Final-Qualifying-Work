@@ -8,8 +8,8 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Приложение")
-        self.geometry("400x250")  
-        self.resizable(False, False)  
+        self.geometry("400x250")  # Размер окна
+        self.resizable(False, False)  # Запрет изменения размера окна
         self.db_path = "users.db"
         self.init_database()
         self.create_login_form()
@@ -55,15 +55,16 @@ class MainWindow(tk.Tk):
         self.wait_window(register_window)
 
     def create_login_form(self):
-        
+        # Создание виджетов для формы входа
         username_label = tk.Label(self, text="Имя пользователя:")
         username_entry = tk.Entry(self)
         password_label = tk.Label(self, text="Пароль:")
-        password_entry = tk.Entry(self, show="*")  
+        password_entry = tk.Entry(self, show="*")  # Скрывает вводимый пароль
 
         login_button = tk.Button(self, text="Войти", command=lambda: self.loginpas(username_entry.get(), password_entry.get()))
         register_button = tk.Button(self, text="Зарегистрироваться", command=self.register_user)
 
+        # Размещение виджетов на экране
         username_label.pack(pady=5)
         username_entry.pack(pady=5)
         password_label.pack(pady=5)
@@ -74,14 +75,14 @@ class MainWindow(tk.Tk):
     def loginpas(self, username, password):
         if self.check_credentials(username, password):
             messagebox.showinfo("Успех", "Вы успешно вошли!")
-            self.destroy()  
-            self.open_main_app()  
+            self.destroy()  # Закрытие окна входа
+            self.open_main_app()  # Открытие главного приложения
             login()
         else:
             messagebox.showerror("Ошибка", "Неправильное имя пользователя или пароль.")
 
     def open_main_app(self):
-        pass  
+        pass  # Здесь будет реализована логика вашего приложения
 
 
 class RegisterWindow(tk.Toplevel):
@@ -93,17 +94,21 @@ class RegisterWindow(tk.Toplevel):
         self.create_register_form()
 
     def create_register_form(self):
-       
+        # Создание виджетов для формы регистрации
         username_label = tk.Label(self, text="Имя пользователя:")
         username_entry = tk.Entry(self)
         password_label = tk.Label(self, text="Пароль:")
-        password_entry = tk.Entry(self, show="*") 
+        password_entry = tk.Entry(self, show="*")  # Скрывает вводимый пароль
         confirm_password_label = tk.Label(self, text="Подтверждение пароля:")
-        confirm_password_entry = tk.Entry(self, show="*")          register_button = tk.Button(self, text="Зарегистрироваться", command=lambda: self.register(
+        confirm_password_entry = tk.Entry(self, show="*")  # Скрывает вводимый пароль
+
+        register_button = tk.Button(self, text="Зарегистрироваться", command=lambda: self.register(
             username_entry.get(),
             password_entry.get(),
             confirm_password_entry.get())
         )
+
+        # Размещение виджетов на экране
         username_label.pack(pady=5)
         username_entry.pack(pady=5)
         password_label.pack(pady=5)
