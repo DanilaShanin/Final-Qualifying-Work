@@ -33,7 +33,10 @@ class Adminapp(tk.Frame):
                                     compound=tk.TOP, image=self.add_img)
         btn_open_dialog.pack(side=tk.LEFT)
 
- 
+        self.update_img = tk.PhotoImage(file='img/update.gif')
+        btn_edit_dialog = tk.Button(toolbar, text='Внести ищменения', bg='#fe4240', bd=0, image=self.update_img,
+                                    compound=tk.TOP, command=self.open_update_dialog)
+        btn_edit_dialog.pack(side=tk.LEFT)
 
 
 
@@ -60,7 +63,13 @@ class Adminapp(tk.Frame):
         self.db.insert_data(username, password)
         self.view_records()
 
-
+    def update_record(self,username, password):
+        self.db.c.execute(
+            '''UPDATE users SET username = ?, password = ? WHERE ID=?''',
+            (username, password,
+             self.tree.set(self.tree.selection()[0], '#1')))
+        self.db.conn.commit()
+        self.view_records()
 
 
 class Child(tk.Toplevel):
@@ -70,7 +79,7 @@ class Child(tk.Toplevel):
         self.view = app
 
     def init_child(self):
-        self.title('Добавить пользователя')
+        self.title('Добавить игрока')
         self.geometry('1000x1000+400+300')
         #self.resizable(False, False)
 
@@ -102,6 +111,28 @@ class Child(tk.Toplevel):
     def _get_r(self, r):
         return [*r, r[0]]
 
+class Update(Child):
+    def __init__(self):
+        super().__init__()
+        self.init_edit()
+        self.view = app
+        self.db = db
+        self.default_data()
+
+    def init_edit(self):
+        self.title('Внесение изменений')
+        btn_edit = ttk.Button(self, text='Изменить')
+        btn_edit.place(x=200, y=500)
+        btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_Name.get(),
+                                                                          self.entry_Password.get()))
+
+
+    def default_data(self):
+        self.db.c.execute('''SELECT * FROM users WHERE id=?''',
+                          (self.view.tree.set(self.view.tree.selection()[0], '#1'),))
+        row = self.db.c.fetchone()
+        self.entry_Name.insert(0, row[1])
+        self.entry_Password.insert(0, row[2])
 
 
 
