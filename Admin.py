@@ -38,6 +38,21 @@ class Adminapp(tk.Frame):
                                     compound=tk.TOP, command=self.open_update_dialog)
         btn_edit_dialog.pack(side=tk.LEFT)
 
+        self.delete_img = tk.PhotoImage(file='img/delete.gif')
+        btn_delete = tk.Button(toolbar, text='Удалить авто', bg='#fe4240', bd=0, image=self.delete_img,
+                               compound=tk.TOP, command=self.delete_records)
+        btn_delete.pack(side=tk.LEFT)
+
+        self.search_img = tk.PhotoImage(file='img/search.gif')
+        btn_search = tk.Button(toolbar, text='Поиск', bg='#fe4240', bd=0, image=self.search_img,
+                               compound=tk.TOP, command=self.open_search_dialog)
+        btn_search.pack(side=tk.LEFT)
+
+        self.refresh_img = tk.PhotoImage(file='img/refresh.gif')
+        btn_refresh = tk.Button(toolbar, text='Обновить страницу', bg='#fe4240', bd=0, image=self.refresh_img,
+                                compound=tk.TOP, command=self.view_records)
+        btn_refresh.pack(side=tk.LEFT)
+
 
 
 
@@ -70,6 +85,36 @@ class Adminapp(tk.Frame):
              self.tree.set(self.tree.selection()[0], '#1')))
         self.db.conn.commit()
         self.view_records()
+
+    def view_records(self):
+        self.db.c.execute('''SELECT * FROM users''')
+        [self.tree.delete(i) for i in self.tree.get_children()]
+        [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
+
+    def delete_records(self):
+        for selection_item in self.tree.selection():
+            self.db.c.execute('''DELETE FROM users WHERE username = ? AND password = ?''', [self.tree.set(selection_item,
+                                                                                         '#1')])
+        self.db.conn.commit()
+        self.view_records()
+
+    def search_records(self, name):
+        name = ('%' + name + '%',)
+        self.db.c.execute('''SELECT * FROM users WHERE name || 
+        username ||
+        password LIKE ?''', name)
+        [self.tree.delete(i) for i in self.tree.get_children()]
+        [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
+
+    def open_dialog(self):
+        Child()
+
+    def open_update_dialog(self):
+        Update()
+
+    def open_search_dialog(self):
+        Search()
+
 
 
 class Child(tk.Toplevel):
@@ -134,7 +179,40 @@ class Update(Child):
         self.entry_Name.insert(0, row[1])
         self.entry_Password.insert(0, row[2])
 
+class Search(tk.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.init_search()
+        self.view = app
 
+    def init_search(self):
+        self.title('Поиск игрока')
+        self.geometry('350x100+400+300')
+        self.resizable(False, False)
+
+        label_search = tk.Label(self, text='Поиск')
+        label_search.place(x=50, y=20)
+
+        self.entry_search = ttk.Entry(self)
+        self.entry_search.place(x=105, y=20, width=150)
+
+        btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
+        btn_cancel.place(x=185, y=50)
+
+        btn_search = ttk.Button(self, text='Поиск')
+        btn_search.place(x=105, y=50)
+        btn_search.bind('<Button-1>', lambda event: self.view.search_records(self.entry_search.get()))
+        btn_search.bind('<Button-1>', lambda event: self.destroy(), add='+')
+
+
+
+def update_progress(value):
+    bar.step(value)
+
+def navigate_to_app(root):
+    update_progress(100)
+    root.destroy()
+    root.quit()
 
 def main():
 
