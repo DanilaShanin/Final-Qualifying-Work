@@ -1,14 +1,15 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 import sqlite3
 import hashlib
-from Admin12312321 import Adminapp  # Импортируем класс Adminapp из файла admin.py
-global app
-import hashlib
-from loading import login
-
-# Глобальная переменная для главного окна
-global main_window
+from PIL import Image, ImageTk
+global Main_Window
+# Подключение Matplotlib для графики
+import matplotlib
+import login2
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
 
 # Классы для работы с базой данных и GUI
@@ -110,146 +111,6 @@ class DB:
         self.c.execute(query)
         return self.c.fetchall()
 
-class MainWindow(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Приложение")
-        self.geometry("400x250")  # Размер окна
-        self.resizable(False, False)  # Запрет изменения размера окна
-        self.db_path = "users.db"
-        self.init_database()
-        self.create_login_form()
-
-    def init_database(self):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
-            );
-        ''')
-        conn.commit()
-        conn.close()
-
-    def get_hashed_password(self, password):
-        return hashlib.sha256(password.encode()).hexdigest()
-
-    def check_credentials(self, username, password):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE username = ? AND password = ?",
-                  (username, self.get_hashed_password(password)))
-        result = c.fetchone()
-        conn.close()
-        return bool(result)
-
-    def add_user(self, username, password):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        try:
-            c.execute("INSERT INTO users (username, password) VALUES (?, ?)",
-                      (username, self.get_hashed_password(password)))
-            conn.commit()
-            return True
-        except sqlite3.IntegrityError:
-            return False
-        finally:
-            conn.close()
-
-    def register_user(self):
-        register_window = RegisterWindow(self)
-        self.wait_window(register_window)
-
-    def create_login_form(self):
-        # Создание виджетов для формы входа
-        username_label = tk.Label(self, text="Имя пользователя:")
-        username_entry = tk.Entry(self)
-        password_label = tk.Label(self, text="Пароль:")
-        password_entry = tk.Entry(self, show="*")  # Скрывает вводимый пароль
-
-        login_button = tk.Button(self, text="Войти",
-                                 command=lambda: self.loginpas(username_entry.get(), password_entry.get()))
-        register_button = tk.Button(self, text="Зарегистрироваться", command=self.register_user)
-
-        # Размещение виджетов на экране
-        username_label.pack(pady=5)
-        username_entry.pack(pady=5)
-        password_label.pack(pady=5)
-        password_entry.pack(pady=5)
-        login_button.pack(pady=10)
-        register_button.pack(pady=5)
-
-    def loginpas(self, username, password):
-        if self.check_credentials(username, password):
-            messagebox.showinfo("Успех", "Вы успешно вошли!")
-
-            # Проверка на логин 'admin' и соответствующий пароль
-            if username == 'admin' and password == '11':
-                self.withdraw()  # Скрываем текущее окно
-                root = tk.Tk()  # Создаем новое корневое окно Tkinter
-                app = Adminapp(root)  # Инициализируем приложение администратора
-                app.pack()  # Упаковываем виджет в окно
-                root.title("Администраторское приложение")  # Устанавливаем заголовок окна
-                root.geometry("800x600")  # Задаем размер окна
-                root.mainloop()  # Запускаем цикл обработки событий Tkinter
-            else:
-                self.destroy()  # Закрытие окна входа
-                self.open_main_app()  # Открытие главного приложения
-                login()
-        else:
-            messagebox.showerror("Ошибка", "Неправильное имя пользователя или пароль.")
-
-    def open_main_app(self):
-        pass  # Здесь будет реализована логика вашего приложения
-
-
-class RegisterWindow(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title("Регистрация")
-        self.geometry("300x300")
-        self.parent = parent
-        self.create_register_form()
-
-    def create_register_form(self):
-        # Создание виджетов для формы регистрации
-        username_label = tk.Label(self, text="Имя пользователя:")
-        username_entry = tk.Entry(self)
-        password_label = tk.Label(self, text="Пароль:")
-        password_entry = tk.Entry(self, show="*")  # Скрывает вводимый пароль
-        confirm_password_label = tk.Label(self, text="Подтверждение пароля:")
-        confirm_password_entry = tk.Entry(self, show="*")  # Скрывает вводимый пароль
-
-        register_button = tk.Button(self, text="Зарегистрироваться", command=lambda: self.register(
-            username_entry.get(),
-            password_entry.get(),
-            confirm_password_entry.get())
-                                    )
-
-        # Размещение виджетов на экране
-        username_label.pack(pady=5)
-        username_entry.pack(pady=5)
-        password_label.pack(pady=5)
-        password_entry.pack(pady=5)
-        confirm_password_label.pack(pady=5)
-        confirm_password_entry.pack(pady=5)
-        register_button.pack(pady=10)
-
-    def register(self, username, password, confirm_password):
-        if not username or not password or not confirm_password:
-            messagebox.showwarning("Предупреждение", "Все поля обязательны для заполнения.")
-            return
-        if password != confirm_password:
-            messagebox.showwarning("Предупреждение", "Пароли не совпадают.")
-            return
-        if self.parent.add_user(username, password):
-            messagebox.showinfo("Успех", "Регистрация прошла успешно!")
-            self.destroy()
-        else:
-            messagebox.showwarning("Предупреждение", f"Пользователь {username} уже существует.")
-
 
 class Adminapp(tk.Frame):
     def __init__(self, root):
@@ -258,45 +119,102 @@ class Adminapp(tk.Frame):
         self.db = DB()  # создаем объект базы данных
         self.view_records()
 
+    def main(self):
+        global main_window
+        main_window = login2.MainWindow()  # Инициализируем главное окно приложения
+        main_window.mainloop()  # Запускаем основной цикл событий
+
+
+    def go_back_to_code(self):
+        self.master.destroy()
+        #global main_window
+        main_window = login2.MainWindow()  # Инициализируем главное окно приложения
+        main_window.mainloop()
+        # Закрываем текущее окно
+        # main_window.deiconify()     # Показываем скрытое окно
+        # main_window.lift()
+
     def init_main(self):
         toolbar = tk.Frame(bg='#fe4240', bd=2)
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        self.add_img = tk.PhotoImage(file="img/add.gif")
+        self.add_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
         btn_open_dialog = tk.Button(toolbar, text='Добавить ', command=self.open_dialog, bg='#fe4240', bd=0,
                                     compound=tk.TOP, image=self.add_img)
         btn_open_dialog.pack(side=tk.LEFT)
 
-        self.update_img = tk.PhotoImage(file="img/add.gif")
+        self.update_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
         btn_edit_dialog = tk.Button(toolbar, text='Внести изменения', bg='#fe4240', bd=0, image=self.update_img,
                                     compound=tk.TOP, command=self.open_update_dialog)
         btn_edit_dialog.pack(side=tk.LEFT)
 
-        self.delete_img = tk.PhotoImage(file="img/add.gif")
+        self.delete_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
         btn_delete = tk.Button(toolbar, text='Удалить авто', bg='#fe4240', bd=0, image=self.delete_img,
                                compound=tk.TOP, command=self.delete_records)
         btn_delete.pack(side=tk.LEFT)
 
-        self.search_img = tk.PhotoImage(file="img/add.gif")
+        self.search_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
         btn_search = tk.Button(toolbar, text='Поиск', bg='#fe4240', bd=0, image=self.search_img,
                                compound=tk.TOP, command=self.open_search_dialog)
         btn_search.pack(side=tk.LEFT)
 
-        self.refresh_img = tk.PhotoImage(file="img/add.gif")
+        self.refresh_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
         btn_refresh = tk.Button(toolbar, text='Обновить страницу', bg='#fe4240', bd=0, image=self.refresh_img,
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
-        # Добавляем кнопку для возврата
-        self.back_img = tk.PhotoImage(file="img/add.gif")  # Изображение для кнопки возврата
+        self.back_img = ImageTk.PhotoImage(Image.open("img/add.gif"))  # Изображение для кнопки возврата
         btn_back = tk.Button(toolbar, text='Вернуться к коду', bg='#fe4240', bd=0, image=self.back_img,
                              compound=tk.TOP, command=self.go_back_to_code)
         btn_back.pack(side=tk.LEFT)
 
-    def go_back_to_code(self):
-        self.master.destroy()  # Закрываем текущее окно администратора
-        main_window.deiconify()  # Показываем скрытое главное окно
-        main_window.lift()       # Перемещаем главное окно наверх
+
+
+        self.tree = ttk.Treeview(self, columns=('ID', 'username', 'password'),
+                                 height=15, show='headings')
+        self.tree.column("ID", width=30, anchor=tk.CENTER)
+        self.tree.column("username", width=150, anchor=tk.CENTER)
+        self.tree.column("password", width=300, anchor=tk.CENTER)
+
+        self.tree.heading("ID", text='ID')
+        self.tree.heading("username", text='Имя')
+        self.tree.heading("password", text='Пароль')
+
+        self.tree.pack(side=tk.LEFT)
+
+        scroll = tk.Scrollbar(self, command=self.tree.yview)
+        scroll.pack(side=tk.LEFT, fill=tk.Y)
+        self.tree.configure(yscrollcommand=scroll.set)
+
+    def records(self, username, password):
+        # добавляем нового пользователя
+        if self.db.insert_user(username, password):
+            messagebox.showinfo("Успешно", "Пользователь добавлен!")
+        else:
+            messagebox.showwarning("Ошибка", "Произошла ошибка при добавлении пользователя.")
+        self.view_records()
+
+    def update_record(self, user_id, username, password):
+        # обновляем данные пользователя
+        if self.db.update_user(user_id, username, password):
+            messagebox.showinfo("Успешно", "Данные пользователя обновлены!")
+        else:
+            messagebox.showwarning("Ошибка", "Произошла ошибка при обновлении данных.")
+        self.view_records()
+
+    def delete_records(self, user_id):
+        # удаляем пользователя
+        if self.db.delete_user(user_id):
+            messagebox.showinfo("Успешно", "Пользователь удалён!")
+        else:
+            messagebox.showwarning("Ошибка", "Произошла ошибка при удалении пользователя.")
+        self.view_records()
+
+    def view_records(self):
+        # отображаем всех пользователей
+        rows = self.db.select_all_users()
+        [self.tree.delete(i) for i in self.tree.get_children()]  # очищаем дерево
+        [self.tree.insert('', 'end', values=row) for row in rows]
 
     def open_dialog(self):
         AddUserDialog(self)
@@ -307,20 +225,6 @@ class Adminapp(tk.Frame):
     def open_search_dialog(self):
         SearchUserDialog(self)
 
-    def view_records(self):
-        # Отображаем всех пользователей
-        rows = self.db.select_all_users()
-        [self.tree.delete(i) for i in self.tree.get_children()]  # Очищаем дерево
-        [self.tree.insert('', 'end', values=row) for row in rows]
-
-    def delete_records(self):
-        selected_item = self.tree.selection()[0]
-        user_id = self.tree.item(selected_item)['values'][0]
-        answer = messagebox.askyesno(title="Подтверждение удаления",
-                                     message=f"Точно удалить запись с ID {user_id}?")
-        if answer:
-            self.db.delete_user(user_id)
-            self.view_records()
 
 class AddUserDialog(tk.Toplevel):
     def __init__(self, parent):
@@ -329,19 +233,19 @@ class AddUserDialog(tk.Toplevel):
         self.geometry("400x180+400+300")
         self.resizable(False, False)
 
-        label_name = tk.Label(self, text="Имя пользователя:")
-        label_name.place(x=50, y=40)
-        label_pass = tk.Label(self, text="Пароль:")
-        label_pass.place(x=50, y=70)
+        self.label_name = tk.Label(self, text="Имя пользователя:")
+        self.label_name.place(x=50, y=40)
+        self.label_pass = tk.Label(self, text="Пароль:")
+        self.label_pass.place(x=50, y=70)
 
-        self.entry_name = tk.Entry(self)
+        self.entry_name = ttk.Entry(self)
         self.entry_name.place(x=170, y=40)
-        self.entry_pass = tk.Entry(self, show="*")
+        self.entry_pass = ttk.Entry(self, show="*")
         self.entry_pass.place(x=170, y=70)
 
-        btn_add = tk.Button(self, text="Добавить", command=self.add_user)
+        btn_add = ttk.Button(self, text="Добавить", command=self.add_user)
         btn_add.place(x=160, y=120)
-        btn_cancel = tk.Button(self, text="Отмена", command=self.destroy)
+        btn_cancel = ttk.Button(self, text="Отмена", command=self.destroy)
         btn_cancel.place(x=240, y=120)
 
         self.grab_set()
@@ -351,9 +255,10 @@ class AddUserDialog(tk.Toplevel):
         username = self.entry_name.get().strip()
         password = self.entry_pass.get().strip()
         if not username or not password:
+
             messagebox.showwarning("Предупреждение", "Заполните все поля!")
             return
-        if len(password) < 8:
+        if len(password) < 1:   #Перед сдачей поменять
             messagebox.showwarning("Предупреждение", "Пароль должен содержать минимум 8 символов!")
             return
         if self.master.db.insert_user(username, password):
@@ -363,73 +268,78 @@ class AddUserDialog(tk.Toplevel):
             messagebox.showwarning("Ошибка", "Пользователь с таким именем уже существует.")
 
 class UpdateUserDialog(AddUserDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title("Редактировать пользователя")
-        self.label_name.config(text="Новое имя пользователя:")
-        self.label_pass.config(text="Новый пароль:")
-        self.entry_name.insert(0, self.master.tree.item(self.master.tree.selection())['values'][1])
-        self.entry_pass.insert(0, self.master.tree.item(self.master.tree.selection())['values'][2])
-        self.btn_add.config(text="Сохранить изменения", command=self.update_user)
+        def __init__(self, parent):
+            super().__init__(parent)
+            self.title("Редактировать пользователя")
+            self.label_name.config(text="Новое имя пользователя:")
+            self.label_pass.config(text="Новый пароль:")
+            self.entry_name.insert(0, self.master.tree.item(self.master.tree.selection())['values'][1])
+            self.entry_pass.insert(0, self.master.tree.item(self.master.tree.selection())['values'][2])
+            self.btn_add.config(text="Сохранить изменения", command=self.update_user)
 
-    def update_user(self):
-        user_id = self.master.tree.item(self.master.tree.selection())['values'][0]
-        username = self.entry_name.get().strip()
-        password = self.entry_pass.get().strip()
-        if not username or not password:
-            messagebox.showwarning("Предупреждение", "Заполните все поля!")
-            return
-        if len(password) < 8:
-            messagebox.showwarning("Предупреждение", "Пароль должен содержать минимум 8 символов!")
-            return
-        if self.master.db.update_user(user_id, username, password):
-            messagebox.showinfo("Успешно", "Пользователь обновлён!")
-            self.destroy()
-        else:
-            messagebox.showwarning("Ошибка", "Ошибка при обновлении пользователя.")
+        def update_user(self):
+            user_id = self.master.tree.item(self.master.tree.selection())['values'][0]
+            username = self.entry_name.get().strip()
+            password = self.entry_pass.get().strip()
+            if not username or not password:
+                messagebox.showwarning("Предупреждение", "Заполните все поля!")
+                return
+            # if len(password) < 8:
+            #     messagebox.showwarning("Предупреждение", "Пароль должен содержать минимум 8 символов!")
+            #     return
+            if self.master.db.update_user(user_id, username, password):
+                messagebox.showinfo("Успешно", "Пользователь обновлён!")
+                self.destroy()
+            else:
+                messagebox.showwarning("Ошибка", "Ошибка при обновлении пользователя.")
 
 class SearchUserDialog(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title("Поиск пользователя")
-        self.geometry("400x130+400+300")
-        self.resizable(False, False)
+        def __init__(self, parent):
+            super().__init__(parent)
+            self.title("Поиск пользователя")
+            self.geometry("400x130+400+300")
+            self.resizable(False, False)
 
-        label_search = tk.Label(self, text="Введите имя пользователя для поиска:")
-        label_search.place(x=50, y=30)
+            label_search = tk.Label(self, text="Введите имя пользователя для поиска:")
+            label_search.place(x=50, y=30)
 
-        self.entry_search = tk.Entry(self)
-        self.entry_search.place(x=60, y=60, width=280)
+            self.entry_search = ttk.Entry(self)
+            self.entry_search.place(x=60, y=60, width=280)
 
-        btn_search = tk.Button(self, text="Найти", command=self.search_user)
-        btn_search.place(x=155, y=90)
-        btn_cancel = tk.Button(self, text="Отмена", command=self.destroy)
-        btn_cancel.place(x=220, y=90)
+            btn_search = ttk.Button(self, text="Найти", command=self.search_user)
+            btn_search.place(x=155, y=90)
+            btn_cancel = ttk.Button(self, text="Отмена", command=self.destroy)
+            btn_cancel.place(x=220, y=90)
 
-        self.grab_set()
-        self.focus_set()
+            self.grab_set()
+            self.focus_set()
 
-    def search_user(self):
-        username = self.entry_search.get().strip()
-        if not username:
-            messagebox.showwarning("Предупреждение", "Введите имя пользователя для поиска!")
-            return
-        results = self.master.db.select_all_users()
-        found = False
-        for row in results:
-            if username.lower() in row[1].lower():  # Поиск по имени пользователя
-                found = True
-                break
-        if found:
-            messagebox.showinfo("Результат поиска", f"Пользователь '{username}' найден!")
-        else:
-            messagebox.showwarning("Результат поиска", f"Пользователь '{username}' не найден.")
-        self.destroy()
+        def search_user(self):
+            username = self.entry_search.get().strip()
+            if not username:
+                messagebox.showwarning("Предупреждение", "Введите имя пользователя для поиска!")
+                return
+            results = self.master.db.select_all_users()
+            found = False
+            for row in results:
+                if username.lower() in row[1].lower():  # Поиск по имени пользователя
+                    found = True
+                    break
+            if found:
+                messagebox.showinfo("Результат поиска", f"Пользователь '{username}' найден!")
+            else:
+                messagebox.showwarning("Результат поиска", f"Пользователь '{username}' не найден.")
+            self.destroy()
 
 def main():
-    global main_window
-    main_window = MainWindow()  # Инициализируем главное окно приложения
-    main_window.mainloop()      # Запускаем основной цикл событий
+    root = tk.Tk()
+    root.title("FootScaut")
+    root.geometry("700x450+300+200")
+    root.resizable(True, True)
+    app = Adminapp(root)
+    app.pack(fill="both", expand=True)
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
+
