@@ -243,10 +243,10 @@ class AddUserDialog(tk.Toplevel):
         self.entry_pass = ttk.Entry(self, show="*")
         self.entry_pass.place(x=170, y=70)
 
-        btn_add = ttk.Button(self, text="Добавить", command=self.add_user)
-        btn_add.place(x=160, y=120)
-        btn_cancel = ttk.Button(self, text="Отмена", command=self.destroy)
-        btn_cancel.place(x=240, y=120)
+        self.btn_save = ttk.Button(self, text="Добавить", command=self.add_user)
+        self.btn_save.place(x=160, y=120)
+        self.btn_cancel = ttk.Button(self, text="Отмена", command=self.destroy)
+        self.btn_cancel.place(x=240, y=120)
 
         self.grab_set()
         self.focus_set()
@@ -255,10 +255,9 @@ class AddUserDialog(tk.Toplevel):
         username = self.entry_name.get().strip()
         password = self.entry_pass.get().strip()
         if not username or not password:
-
             messagebox.showwarning("Предупреждение", "Заполните все поля!")
             return
-        if len(password) < 1:   #Перед сдачей поменять
+        if len(password) < 1:   # Перед сдачей поменять
             messagebox.showwarning("Предупреждение", "Пароль должен содержать минимум 8 символов!")
             return
         if self.master.db.insert_user(username, password):
@@ -267,32 +266,31 @@ class AddUserDialog(tk.Toplevel):
         else:
             messagebox.showwarning("Ошибка", "Пользователь с таким именем уже существует.")
 
+
 class UpdateUserDialog(AddUserDialog):
-        def __init__(self, parent):
-            super().__init__(parent)
-            self.title("Редактировать пользователя")
-            self.label_name.config(text="Новое имя пользователя:")
-            self.label_pass.config(text="Новый пароль:")
-            self.entry_name.insert(0, self.master.tree.item(self.master.tree.selection())['values'][1])
-            self.entry_pass.insert(0, self.master.tree.item(self.master.tree.selection())['values'][2])
-            self.btn_add.config(text="Сохранить изменения", command=self.update_user)
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Редактировать пользователя")
+        self.label_name.config(text="Новое имя пользователя:")
+        self.label_pass.config(text="Новый пароль:")
+        self.entry_name.insert(0, self.master.tree.item(self.master.tree.selection())['values'][1])
+        self.entry_pass.insert(0, self.master.tree.item(self.master.tree.selection())['values'][2])
 
-        def update_user(self):
-            user_id = self.master.tree.item(self.master.tree.selection())['values'][0]
-            username = self.entry_name.get().strip()
-            password = self.entry_pass.get().strip()
-            if not username or not password:
-                messagebox.showwarning("Предупреждение", "Заполните все поля!")
-                return
-            # if len(password) < 8:
-            #     messagebox.showwarning("Предупреждение", "Пароль должен содержать минимум 8 символов!")
-            #     return
-            if self.master.db.update_user(user_id, username, password):
-                messagebox.showinfo("Успешно", "Пользователь обновлён!")
-                self.destroy()
-            else:
-                messagebox.showwarning("Ошибка", "Ошибка при обновлении пользователя.")
+        # Теперь изменяем текст кнопки и команду
+        self.btn_save.config(text="Сохранить изменения", command=self.update_user)
 
+    def update_user(self):
+        user_id = self.master.tree.item(self.master.tree.selection())['values'][0]
+        username = self.entry_name.get().strip()
+        password = self.entry_pass.get().strip()
+        if not username or not password:
+            messagebox.showwarning("Предупреждение", "Заполните все поля!")
+            return
+        if self.master.db.update_user(user_id, username, password):
+            messagebox.showinfo("Успешно", "Пользователь обновлён!")
+            self.destroy()
+        else:
+            messagebox.showwarning("Ошибка", "Ошибка при обновлении пользователя.")
 class SearchUserDialog(tk.Toplevel):
         def __init__(self, parent):
             super().__init__(parent)
