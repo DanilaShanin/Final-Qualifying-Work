@@ -1,20 +1,22 @@
-
+import tkinter as tk
 from tkinter import ttk
 import matplotlib
-
 matplotlib.use("TkAgg")
-
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+import numpy as np
+from PySide6.QtWidgets import QApplication, QSplashScreen, QProgressBar
 from model import DB
 import tkinter as tk
-
-
-root = None
+import joblib
+import joblib
+from webbrowser import open
+import sklearn
+from sklearn.pipeline import Pipeline
+root=None
 
 db = DB()
-bar = None
-global app
-
-
+bar=None
 class Main(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
@@ -51,21 +53,20 @@ class Main(tk.Frame):
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
-        self.helper_img = tk.PhotoImage(file="img/add.gif")
-        btn_open_helper_dialog = tk.Button(toolbar, text='помочник', command=self.open_helper_dialog, bg='#fe4240',
-                                           bd=0,
-                                           compound=tk.TOP, image=self.add_img)
-        btn_open_helper_dialog.pack(side=tk.LEFT)
+        # self.helper_img = tk.PhotoImage(file="img/add.gif")
+        # btn_open_helper_dialog = tk.Button(toolbar, text='помочник', command=self.open_helper_dialog, bg='#fe4240', bd=0,
+        #                             compound=tk.TOP, image=self.add_img)
+        # btn_open_helper_dialog.pack(side=tk.LEFT)
 
         self.info = tk.PhotoImage(file="img/add.gif")
         btn_info = tk.Button(toolbar, text='Инструкция', command=self.open_info_dialog, bg='#fe4240', bd=0,
-                             compound=tk.TOP, image=self.add_img)
+                                    compound=tk.TOP, image=self.add_img)
 
         btn_info.pack(side=tk.RIGHT)
 
-        self.tree = ttk.Treeview(self, columns=(
-        'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
-        'City', 'Year', 'Price')
+
+        self.tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
+                                                'City', 'Year', 'Price')
                                  , height=15, show='headings')
         self.tree.column("ID", width=10, anchor=tk.CENTER)
         self.tree.column("Make", width=150, anchor=tk.CENTER)
@@ -126,7 +127,7 @@ class Main(tk.Frame):
     def delete_records(self):
         for selection_item in self.tree.selection():
             self.db.c.execute('''DELETE FROM carhelper WHERE id=?''', [self.tree.set(selection_item,
-                                                                                     '#1')])
+                                                                                         '#1')])
         self.db.conn.commit()
         self.view_records()
 
@@ -157,6 +158,19 @@ class Main(tk.Frame):
     def open_info_dialog(self):
         Info()
 
+    # def open_helper_dialog(self):
+    #     Helper()
+
+class Helper(tk.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.view = app
+
+        # Загрузка модели из файла
+        self.model = joblib.load('forest_pipe.joblib')
+        print(self.model.predict([[3000,10000,2019,24,5,25]]))
+
+
 
 class Info(tk.Toplevel):
     def __init__(self):
@@ -167,8 +181,7 @@ class Info(tk.Toplevel):
     def init_info(self):
         self.title('Инструкция')
         self.geometry('300x150+40+30')
-
-        # self.resizable(False, False)
+        #self.resizable(False, False)
 
         def open_link(event):
             # Ссылка на сайт
@@ -190,6 +203,7 @@ class Info(tk.Toplevel):
         def open_link4(event):
             url4 = 'https://example.com'
             open(url4)
+
 
         self.title('Пример приложения')
 
@@ -234,7 +248,11 @@ class Info(tk.Toplevel):
         link_label.grid(row=5, column=1, padx=(20, 0))
         link_label.bind('<Button-1>', open_link4)
 
+
+
         self.mainloop()
+
+
 
 
 class Child(tk.Toplevel):
@@ -246,11 +264,11 @@ class Child(tk.Toplevel):
     def init_child(self):
         self.title('Добавить')
         self.geometry('1000x1000+400+300')
-        # self.resizable(False, False)
+        #self.resizable(False, False)
 
-        label_Make = tk.Label(self, text='Имя:')
+        label_Make = tk.Label(self, text='Марка:')
         label_Make.place(x=100, y=25)
-        label_Name = tk.Label(self, text='Возраст:')
+        label_Name = tk.Label(self, text='Наименование:')
         label_Name.place(x=100, y=50)
 
         label_EngineType = tk.Label(self, text='Позиция')
@@ -265,6 +283,36 @@ class Child(tk.Toplevel):
         label_Year.place(x=100, y=200)
         label_Price = tk.Label(self, text='Цена:')
         label_Price.place(x=100, y=200)
+        # label_pace = tk.Label(self, text='Скорость:')
+        # label_pace.place(x=100, y=225)
+        # label_shooting = tk.Label(self, text='Удар:')
+        # label_shooting.place(x=100, y=250)
+        # label_passing = tk.Label(self, text='Передачи:')
+        # label_passing.place(x=100, y=275)
+        # label_dribbling = tk.Label(self, text='Дриблинг:')
+        # label_dribbling.place(x=100, y=300)
+        # label_defending = tk.Label(self, text='Оборона:')
+        # label_defending.place(x=100, y=325)
+        # label_physicality = tk.Label(self, text='Физика:')
+        # label_physicality.place(x=100, y=350)
+        #
+        # self.var = tk.StringVar()
+        # self.var.trace_add("write", self.graf)
+        #
+        # self.var1 = tk.StringVar()
+        # self.var1.trace_add("write", self.graf)
+        #
+        # self.var2 = tk.StringVar()
+        # self.var2.trace_add("write", self.graf)
+        #
+        # self.var3 = tk.StringVar()
+        # self.var3.trace_add("write", self.graf)
+        #
+        # self.var4 = tk.StringVar()
+        # self.var4.trace_add("write", self.graf)
+        #
+        # self.var5 = tk.StringVar()
+        # self.var5.trace_add("write", self.graf)
 
         self.entry_Make = ttk.Entry(self)
         self.entry_Make.place(x=200, y=25)
@@ -275,14 +323,15 @@ class Child(tk.Toplevel):
         transmission_types = ["Механическая", "Автоматическая", "Вариатор"]
         self.transmission = tk.StringVar(self)
         self.transmission.set(transmission_types[0])
-        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=75)
+        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=65)
         tk.OptionMenu(self, self.transmission, *transmission_types).place(x=200, y=85)
 
         Engine_types = ["Бнензин", "Газ", "Вариатор"]
         self.EngineType = tk.StringVar(self)
         self.EngineType.set(Engine_types[0])
-        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=100)
+        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=65)
         tk.OptionMenu(self, self.EngineType, *Engine_types).place(x=200, y=100)
+
 
         self.entry_EngineCapacity = ttk.Entry(self)
         self.entry_EngineCapacity.place(x=200, y=125)
@@ -298,6 +347,46 @@ class Child(tk.Toplevel):
 
         self.entry_Price = ttk.Entry(self)
         self.entry_Price.place(x=200, y=200)
+
+        # self.entry_pace = ttk.Entry(self, textvariable=self.var)
+        # self.entry_pace.place(x=200, y=225)
+        #
+        # self.entry_shooting = ttk.Entry(self, textvariable=self.var1)
+        # self.entry_shooting.place(x=200, y=250)
+        #
+        # self.entry_passing = ttk.Entry(self, textvariable=self.var2)
+        # self.entry_passing.place(x=200, y=275)
+        #
+        # self.entry_dribbling = ttk.Entry(self, textvariable=self.var3)
+        # self.entry_dribbling.place(x=200, y=300)
+        #
+        # self.entry_defending = ttk.Entry(self, textvariable=self.var4)
+        # self.entry_defending.place(x=200, y=325)
+        #
+        # self.entry_physicality = ttk.Entry(self, textvariable=self.var5)
+        # self.entry_physicality.place(x=200, y=350)
+        #
+        # f = Figure(figsize=(5, 5), dpi=100)
+        # a = f.add_subplot(111, projection='polar')
+        #
+        # labels = ["Скорость", "Удар", "Передачи", "Дриблинг", "Оборона", "Физика"]
+        #
+        # r = [100, 7, 9, 6, 1, 8]
+        # theta = np.deg2rad(np.linspace(0, 360, 7))
+        #
+        # a.axes.set_xticklabels(labels)
+        # a.axes.set_ylim(100)
+        # a.axes.set_xticks(theta)
+        # a.axes.plot(theta, self._get_r(r), color='black')
+        #
+        # self.ax = a.axes
+        #
+        # self.canvas = FigureCanvasTkAgg(f, self)
+        # self.canvas.draw()
+        # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+
+        btn_pred = ttk.Button(self, text='Predict', command=Helper)
+        btn_pred.place(x=100, y=500)
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
         btn_cancel.place(x=300, y=500)
@@ -316,10 +405,35 @@ class Child(tk.Toplevel):
 
         self.grab_set()
         self.focus_set()
+    # def graf(self, name, index,mode, *args):
+    #     try:
+    #
+    #         # f = Figure(figsize=(5, 5), dpi=100)
+    #         # a = f.add_subplot(111, projection='polar')
+    #         #
+    #         labels = ["Скорость", "Удар", "Передачи", "Дриблинг", "Оборона", "Физика"]
+    #
+    #         r = [int(self.var.get()),
+    #              int(self.var1.get()),
+    #              int(self.var2.get()),
+    #              int(self.var3.get()),
+    #              int(self.var4.get()),
+    #              int(self.var5.get())]
+    #         theta = np.deg2rad(np.linspace(0, 360, 7))
+    #         self.ax.clear()
+    #         self.ax.set_xticklabels(labels)
+    #         #
+    #         self.ax.set_xticks(theta)
+    #         self.ax.plot(theta, self._get_r(r), color='black')
+    #         # self.canvas.delete('all')
+    #         # self.canvas = FigureCanvasTkAgg(f, self)
+    #         self.canvas.draw()
+    #         # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+    #     except:
+    #         pass
 
     def _get_r(self, r):
         return [*r, r[0]]
-
 
 class Update(Child):
     def __init__(self):
@@ -342,6 +456,12 @@ class Update(Child):
                                                                           self.entry_City.get(),
                                                                           self.entry_Year.get(),
                                                                           self.entry_Price.get()))
+                                                                          # self.entry_pace.get(),
+                                                                          # self.entry_shooting.get(),
+                                                                          # self.entry_passing.get(),
+                                                                          # self.entry_dribbling.get(),
+                                                                          # self.entry_defending.get(),
+                                                                          # self.entry_physicality.get()))
         self.btn_ok.destroy()
 
     def default_data(self):
@@ -357,7 +477,12 @@ class Update(Child):
         self.entry_City.insert(0, row[7])
         self.entry_Year.insert(0, row[8])
         self.entry_Price.insert(0, row[9])
-
+        # self.entry_pace.insert(0, row[9])
+        # self.entry_shooting.insert(0, row[10])
+        # self.entry_passing.insert(0, row[11])
+        # self.entry_dribbling.insert(0, row[12])
+        # self.entry_defending.insert(0, row[13])
+        # self.entry_physicality.insert(0, row[14])
 
 class Search(tk.Toplevel):
     def __init__(self):
@@ -385,9 +510,9 @@ class Search(tk.Toplevel):
         btn_search.bind('<Button-1>', lambda event: self.destroy(), add='+')
 
 
+
 def update_progress(value):
     bar.step(value)
-
 
 def navigate_to_app(root):
     update_progress(100)
@@ -395,10 +520,28 @@ def navigate_to_app(root):
     root.quit()
 
 
+# def screensaver():
+#     from tk_loader import Screensaver
+#     from random import randint
+#
+#     global bar
+#
+#     saver = tk.Tk()
+#     load_screen = Screensaver(saver, progress_func=update_progress, go_next=lambda: navigate_to_app(saver))
+#
+#     # image_id = randint(1, 4)
+#     # load_screen.play_gif(f'loading_gifs/{image_id}.gif', 0.03)
+#
+#     bar = ttk.Progressbar(orient='horizontal')
+#     bar.pack(fill='both')
+#     saver.title("FootScaut")
+#     saver.mainloop()
 def main():
 
-
-
+# if __name__ == "__main__":
+    # screensaver()
+    global app
+    
     root = tk.Tk()
     db = DB()
     app = Main(root)
