@@ -53,17 +53,16 @@ class Main(tk.Frame):
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
-        # self.helper_img = tk.PhotoImage(file="img/add.gif")
-        # btn_open_helper_dialog = tk.Button(toolbar, text='помочник', command=self.open_helper_dialog, bg='#fe4240', bd=0,
-        #                             compound=tk.TOP, image=self.add_img)
-        # btn_open_helper_dialog.pack(side=tk.LEFT)
+        self.helper_img = tk.PhotoImage(file="img/add.gif")
+        btn_open_helper_dialog = tk.Button(toolbar, text='помочник', command=self.open_helper_dialog, bg='#fe4240', bd=0,
+                                    compound=tk.TOP, image=self.add_img)
+        btn_open_helper_dialog.pack(side=tk.LEFT)
 
         self.info = tk.PhotoImage(file="img/add.gif")
         btn_info = tk.Button(toolbar, text='Инструкция', command=self.open_info_dialog, bg='#fe4240', bd=0,
                                     compound=tk.TOP, image=self.add_img)
 
         btn_info.pack(side=tk.RIGHT)
-
 
         self.tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
                                                 'City', 'Year', 'Price')
@@ -158,17 +157,8 @@ class Main(tk.Frame):
     def open_info_dialog(self):
         Info()
 
-    # def open_helper_dialog(self):
-    #     Helper()
-
-class Helper(tk.Toplevel):
-    def __init__(self):
-        super().__init__()
-        self.view = app
-
-        # Загрузка модели из файла
-        self.model = joblib.load('forest_pipe.joblib')
-        print(self.model.predict([[3000,10000,2019,24,5,25]]))
+    def open_helper_dialog(self):
+        Helper()
 
 
 
@@ -253,7 +243,38 @@ class Info(tk.Toplevel):
         self.mainloop()
 
 
+class Helper(tk.Toplevel):
+    def __init__(self, eng_cap, mill, year, eng_type, transmission):
+        super().__init__()
+        self.view = app
+        if eng_type == 'Бензин':
+            eng_type = 3
+        elif eng_type == 'Газ':
+            eng_type = 1
+        elif eng_type == 'Электрический':
+            eng_type = 5
 
+        if transmission == 'Механическая':
+            transmission = 1
+        elif transmission == 'Автоматическая':
+            transmission = 2
+
+        print(eng_cap, mill, year, eng_type, transmission)
+
+
+        # Загрузка модели из файла
+        self.model = joblib.load('forest_pipe.joblib')
+        print(self.model.predict([[self.entry_EngineCapacity.get(),self.entry_Mileage.get(),self.entry_Year.get(),self.EngineType.get(),self.transmission.get()]]))
+
+        self.entry_Make.get(),
+        self.entry_Name.get(),
+        self.transmission.get(),
+        self.EngineType.get(),
+        self.entry_EngineCapacity.get(),
+        self.entry_Mileage.get(),
+        self.entry_City.get(),
+        self.entry_Year.get(),
+        self.entry_Price.get()))
 
 class Child(tk.Toplevel):
     def __init__(self):
@@ -261,28 +282,27 @@ class Child(tk.Toplevel):
         self.init_child()
         self.view = app
 
+
     def init_child(self):
         self.title('Добавить')
         self.geometry('1000x1000+400+300')
         #self.resizable(False, False)
 
         label_Make = tk.Label(self, text='Марка:')
-        label_Make.place(x=100, y=25)
+        label_Make.place(x=115, y=25)
         label_Name = tk.Label(self, text='Наименование:')
-        label_Name.place(x=100, y=50)
+        label_Name.place(x=115, y=50)
 
-        label_EngineType = tk.Label(self, text='Позиция')
-        label_EngineType.place(x=100, y=100)
-        label_EngineCapacity = tk.Label(self, text='Информация:')
-        label_EngineCapacity.place(x=100, y=125)
-        label_Mileage = tk.Label(self, text='Гражданство:')
-        label_Mileage.place(x=100, y=150)
-        label_City = tk.Label(self, text='Клуб:')
-        label_City.place(x=100, y=175)
-        label_Year = tk.Label(self, text='Цена:')
-        label_Year.place(x=100, y=200)
+        label_EngineCapacity = tk.Label(self, text='Мощность ДВС:')
+        label_EngineCapacity.place(x=115, y=155)
+        label_Mileage = tk.Label(self, text='Пробег:')
+        label_Mileage.place(x=115, y=180)
+        label_City = tk.Label(self, text='Город:')
+        label_City.place(x=115, y=205)
+        label_Year = tk.Label(self, text='Год выпуска:')
+        label_Year.place(x=115, y=230)
         label_Price = tk.Label(self, text='Цена:')
-        label_Price.place(x=100, y=200)
+        label_Price.place(x=115, y=255)
         # label_pace = tk.Label(self, text='Скорость:')
         # label_pace.place(x=100, y=225)
         # label_shooting = tk.Label(self, text='Удар:')
@@ -315,38 +335,38 @@ class Child(tk.Toplevel):
         # self.var5.trace_add("write", self.graf)
 
         self.entry_Make = ttk.Entry(self)
-        self.entry_Make.place(x=200, y=25)
+        self.entry_Make.place(x=250, y=25)
 
         self.entry_Name = ttk.Entry(self)
-        self.entry_Name.place(x=200, y=50)
+        self.entry_Name.place(x=250, y=50)
 
-        transmission_types = ["Механическая", "Автоматическая", "Вариатор"]
+        transmission_types = ["Механическая", "Автоматическая"]
         self.transmission = tk.StringVar(self)
         self.transmission.set(transmission_types[0])
-        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=65)
-        tk.OptionMenu(self, self.transmission, *transmission_types).place(x=200, y=85)
+        tk.Label(self, text="Тип трансмиссии:").place(x=100, y=90)
+        tk.OptionMenu(self, self.transmission, *transmission_types).place(x=250, y=90)
 
-        Engine_types = ["Бнензин", "Газ", "Вариатор"]
+        Engine_types = ["Бензин", "Газ", "Электрический"]
         self.EngineType = tk.StringVar(self)
         self.EngineType.set(Engine_types[0])
-        tk.Label(self, text="Тип трансмиссии:").place(x=200, y=65)
-        tk.OptionMenu(self, self.EngineType, *Engine_types).place(x=200, y=100)
+        tk.Label(self, text="Тип двигателя:").place(x=100, y=130)
+        tk.OptionMenu(self, self.EngineType, *Engine_types).place(x=250, y=130)
 
 
         self.entry_EngineCapacity = ttk.Entry(self)
-        self.entry_EngineCapacity.place(x=200, y=125)
+        self.entry_EngineCapacity.place(x=250, y=155)
 
         self.entry_Mileage = ttk.Entry(self)
-        self.entry_Mileage.place(x=200, y=150)
+        self.entry_Mileage.place(x=250, y=180)
 
         self.entry_City = ttk.Entry(self)
-        self.entry_City.place(x=200, y=175)
+        self.entry_City.place(x=250, y=205)
 
         self.entry_Year = ttk.Entry(self)
-        self.entry_Year.place(x=200, y=200)
+        self.entry_Year.place(x=250, y=230)
 
         self.entry_Price = ttk.Entry(self)
-        self.entry_Price.place(x=200, y=200)
+        self.entry_Price.place(x=250, y=255)
 
         # self.entry_pace = ttk.Entry(self, textvariable=self.var)
         # self.entry_pace.place(x=200, y=225)
@@ -385,14 +405,16 @@ class Child(tk.Toplevel):
         # self.canvas.draw()
         # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
 
-        btn_pred = ttk.Button(self, text='Predict', command=Helper)
+        # btn_pred = ttk.Button(self, text='Predict', command=lambda: Helper(self.entry_EngineCapacity.get(),self.entry_Mileage.get(),self.entry_Year.get(),self.EngineType.get(),self.transmission.get()))
+        # btn_pred = ttk.Button(self, text='Predict', command=Helper)
+        btn_pred = ttk.Button(self, text='Анализ цены', command=self.pred_m)
         btn_pred.place(x=100, y=500)
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
-        btn_cancel.place(x=300, y=500)
+        btn_cancel.place(x=400, y=500)
 
         self.btn_ok = ttk.Button(self, text='Добавить')
-        self.btn_ok.place(x=200, y=500)
+        self.btn_ok.place(x=250, y=500)
         self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_Make.get(),
                                                                        self.entry_Name.get(),
                                                                        self.transmission.get(),
@@ -405,32 +427,6 @@ class Child(tk.Toplevel):
 
         self.grab_set()
         self.focus_set()
-    # def graf(self, name, index,mode, *args):
-    #     try:
-    #
-    #         # f = Figure(figsize=(5, 5), dpi=100)
-    #         # a = f.add_subplot(111, projection='polar')
-    #         #
-    #         labels = ["Скорость", "Удар", "Передачи", "Дриблинг", "Оборона", "Физика"]
-    #
-    #         r = [int(self.var.get()),
-    #              int(self.var1.get()),
-    #              int(self.var2.get()),
-    #              int(self.var3.get()),
-    #              int(self.var4.get()),
-    #              int(self.var5.get())]
-    #         theta = np.deg2rad(np.linspace(0, 360, 7))
-    #         self.ax.clear()
-    #         self.ax.set_xticklabels(labels)
-    #         #
-    #         self.ax.set_xticks(theta)
-    #         self.ax.plot(theta, self._get_r(r), color='black')
-    #         # self.canvas.delete('all')
-    #         # self.canvas = FigureCanvasTkAgg(f, self)
-    #         self.canvas.draw()
-    #         # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
-    #     except:
-    #         pass
 
     def _get_r(self, r):
         return [*r, r[0]]
@@ -448,14 +444,14 @@ class Update(Child):
         btn_edit = ttk.Button(self, text='Изменить')
         btn_edit.place(x=200, y=500)
         btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_Make.get(),
-                                                                          self.entry_Name.get(),
-                                                                          self.transmission.get(),
-                                                                          self.EngineType.get(),
-                                                                          self.entry_EngineCapacity.get(),
-                                                                          self.entry_Mileage.get(),
-                                                                          self.entry_City.get(),
-                                                                          self.entry_Year.get(),
-                                                                          self.entry_Price.get()))
+                                                                            self.entry_Name.get(),
+                                                                            self.transmission.get(),
+                                                                            self.EngineType.get(),
+                                                                            self.entry_EngineCapacity.get(),
+                                                                            self.entry_Mileage.get(),
+                                                                            self.entry_City.get(),
+                                                                            self.entry_Year.get(),
+                                                                            self.entry_Price.get()))
                                                                           # self.entry_pace.get(),
                                                                           # self.entry_shooting.get(),
                                                                           # self.entry_passing.get(),
@@ -470,8 +466,8 @@ class Update(Child):
         row = self.db.c.fetchone()
         self.entry_Make.insert(0, row[1])
         self.entry_Name.insert(0, row[2])
-        self.transmission.insert(0, row[3])
-        self.EngineType.insert(0, row[4])
+        self.transmission.set(row[3])
+        self.EngineType.set(row[4])
         self.entry_EngineCapacity.insert(0, row[5])
         self.entry_Mileage.insert(0, row[6])
         self.entry_City.insert(0, row[7])
@@ -483,6 +479,8 @@ class Update(Child):
         # self.entry_dribbling.insert(0, row[12])
         # self.entry_defending.insert(0, row[13])
         # self.entry_physicality.insert(0, row[14])
+
+
 
 class Search(tk.Toplevel):
     def __init__(self):
@@ -502,12 +500,14 @@ class Search(tk.Toplevel):
         self.entry_search.place(x=105, y=20, width=150)
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
-        btn_cancel.place(x=185, y=50)
+        btn_cancel.place(x=250, y=50)
 
         btn_search = ttk.Button(self, text='Поиск')
-        btn_search.place(x=105, y=50)
+        btn_search.place(x=150, y=50)
         btn_search.bind('<Button-1>', lambda event: self.view.search_records(self.entry_search.get()))
         btn_search.bind('<Button-1>', lambda event: self.destroy(), add='+')
+
+
 
 
 
