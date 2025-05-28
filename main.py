@@ -264,17 +264,18 @@ class Helper(tk.Toplevel):
 
         # Загрузка модели из файла
         self.model = joblib.load('forest_pipe.joblib')
-        print(self.model.predict([[self.entry_EngineCapacity.get(),self.entry_Mileage.get(),self.entry_Year.get(),self.EngineType.get(),self.transmission.get()]]))
+        print(self.model.predict([[eng_cap, mill, year, eng_type, transmission]]))
+        # print(self.model.predict([[self.entry_EngineCapacity.get(),self.entry_Mileage.get(),self.entry_Year.get(),self.EngineType.get(),self.transmission.get()]]))
 
-        self.entry_Make.get(),
-        self.entry_Name.get(),
-        self.transmission.get(),
-        self.EngineType.get(),
-        self.entry_EngineCapacity.get(),
-        self.entry_Mileage.get(),
-        self.entry_City.get(),
-        self.entry_Year.get(),
-        self.entry_Price.get()))
+        # self.entry_Make.get(),
+        # self.entry_Name.get(),
+        # self.transmission.get(),
+        # self.EngineType.get(),
+        # self.entry_EngineCapacity.get(),
+        # self.entry_Mileage.get(),
+        # self.entry_City.get(),
+        # self.entry_Year.get(),
+        # self.entry_Price.get()))
 
 class Child(tk.Toplevel):
     def __init__(self):
@@ -427,6 +428,33 @@ class Child(tk.Toplevel):
 
         self.grab_set()
         self.focus_set()
+
+    # def graf(self, name, index,mode, *args):
+    #     try:
+    #
+    #         # f = Figure(figsize=(5, 5), dpi=100)
+    #         # a = f.add_subplot(111, projection='polar')
+    #         #
+    #         labels = ["Скорость", "Удар", "Передачи", "Дриблинг", "Оборона", "Физика"]
+    #
+    #         r = [int(self.var.get()),
+    #              int(self.var1.get()),
+    #              int(self.var2.get()),
+    #              int(self.var3.get()),
+    #              int(self.var4.get()),
+    #              int(self.var5.get())]
+    #         theta = np.deg2rad(np.linspace(0, 360, 7))
+    #         self.ax.clear()
+    #         self.ax.set_xticklabels(labels)
+    #         #
+    #         self.ax.set_xticks(theta)
+    #         self.ax.plot(theta, self._get_r(r), color='black')
+    #         # self.canvas.delete('all')
+    #         # self.canvas = FigureCanvasTkAgg(f, self)
+    #         self.canvas.draw()
+    #         # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+    #     except:
+    #         pass
 
     def _get_r(self, r):
         return [*r, r[0]]
