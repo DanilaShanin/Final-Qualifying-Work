@@ -429,6 +429,15 @@ class Child(tk.Toplevel):
         self.grab_set()
         self.focus_set()
 
+    def pred_m(self):
+        # Загрузка модели из файла
+        self.model = joblib.load('forest_pipe.joblib')
+        value = self.model.predict([[self.entry_EngineCapacity.get(),
+                                    self.entry_Mileage.get(),
+                                   self.entry_Year.get(), eng_type, transmission]])
+        self.entry_Price.delete(0, tk.END)
+        self.entry_Price.insert(0,round(value[0],2))
+
     # def graf(self, name, index,mode, *args):
     #     try:
     #
