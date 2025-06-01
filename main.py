@@ -430,6 +430,23 @@ class Child(tk.Toplevel):
         self.focus_set()
 
     def pred_m(self):
+        eng_type = self.EngineType.get()
+        if eng_type == 'Бензин':
+            eng_type = 3
+        elif eng_type == 'Газ':
+            eng_type = 1
+        elif eng_type == 'Электрический':
+            eng_type = 5
+
+        transmission = self.transmission.get()
+        if transmission == 'Механическая':
+            transmission = 1
+        elif transmission == 'Автоматическая':
+            transmission = 2
+
+        # print(eng_cap, mill, year, eng_type, transmission)
+
+
         # Загрузка модели из файла
         self.model = joblib.load('forest_pipe.joblib')
         value = self.model.predict([[self.entry_EngineCapacity.get(),
