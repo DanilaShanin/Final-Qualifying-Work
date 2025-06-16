@@ -4,15 +4,11 @@ import sqlite3
 import hashlib
 from PIL import Image, ImageTk
 global Main_Window
-# Подключение Matplotlib для графики
+
 import matplotlib
 import login2
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
 
-
-# Классы для работы с базой данных и GUI
 class DB:
     def __init__(self, database_path="users.db"):
         self.database_path = database_path
@@ -21,23 +17,17 @@ class DB:
         self._connect_db()
 
     def _connect_db(self):
-        """Устанавливает соединение с базой данных."""
+        #Устанавливает соединение с базой данных
         self.conn = sqlite3.connect(self.database_path)
         self.c = self.conn.cursor()
 
     def close_connection(self):
-        """Закрывает соединение с базой данных."""
+        #Закрывает соединение с базой данных
         if self.conn is not None:
             self.conn.close()
 
     def insert_user(self, username, password):
-        """
-        Вставляет нового пользователя в таблицу users.
 
-        :param username: Имя пользователя
-        :param password: Пароль пользователя (в хешированном виде)
-        :return: True при успешном добавлении, иначе False
-        """
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         query = "INSERT INTO users (username, password) VALUES (?, ?)"
         try:
@@ -52,14 +42,7 @@ class DB:
             return False
 
     def update_user(self, user_id, new_username=None, new_password=None):
-        """
-        Обновляет данные пользователя по его идентификатору.
 
-        :param user_id: Идентификатор пользователя
-        :param new_username: Новое имя пользователя (если None, не изменяется)
-        :param new_password: Новый пароль (если None, не изменяется)
-        :return: True при успешном обновлении, иначе False
-        """
         query = ""
         params = []
         if new_username is not None and new_password is not None:
@@ -86,12 +69,7 @@ class DB:
             return False
 
     def delete_user(self, user_id):
-        """
-        Удаляет пользователя по его идентификатору.
 
-        :param user_id: Идентификатор пользователя
-        :return: True при успешном удалении, иначе False
-        """
         query = "DELETE FROM users WHERE id = ?"
         try:
             self.c.execute(query, (user_id,))
@@ -102,11 +80,7 @@ class DB:
             return False
 
     def select_all_users(self):
-        """
-        Возвращает всех пользователей из базы данных.
 
-        :return: Список кортежей с пользователями
-        """
         query = "SELECT * FROM users"
         self.c.execute(query)
         return self.c.fetchall()
@@ -143,28 +117,28 @@ class Adminapp(tk.Frame):
                                     compound=tk.TOP, image=self.add_img)
         btn_open_dialog.pack(side=tk.LEFT)
 
-        self.update_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
+        self.update_img = ImageTk.PhotoImage(Image.open("img/update.gif"))
         btn_edit_dialog = tk.Button(toolbar, text='Внести изменения', bg='#fe4240', bd=0, image=self.update_img,
                                     compound=tk.TOP, command=self.open_update_dialog)
         btn_edit_dialog.pack(side=tk.LEFT)
 
-        self.delete_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
+        self.delete_img = ImageTk.PhotoImage(Image.open("img/delete.gif"))
         btn_delete = tk.Button(toolbar, text='Удалить авто', bg='#fe4240', bd=0, image=self.delete_img,
                                compound=tk.TOP, command=self.delete_records)
         btn_delete.pack(side=tk.LEFT)
 
-        self.search_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
+        self.search_img = ImageTk.PhotoImage(Image.open("img/search.gif"))
         btn_search = tk.Button(toolbar, text='Поиск', bg='#fe4240', bd=0, image=self.search_img,
                                compound=tk.TOP, command=self.open_search_dialog)
         btn_search.pack(side=tk.LEFT)
 
-        self.refresh_img = ImageTk.PhotoImage(Image.open("img/add.gif"))
+        self.refresh_img = ImageTk.PhotoImage(Image.open("img/refresh.gif"))
         btn_refresh = tk.Button(toolbar, text='Обновить страницу', bg='#fe4240', bd=0, image=self.refresh_img,
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
-        self.back_img = ImageTk.PhotoImage(Image.open("img/add.gif"))  # Изображение для кнопки возврата
-        btn_back = tk.Button(toolbar, text='Вернуться к коду', bg='#fe4240', bd=0, image=self.back_img,
+        self.back_img = ImageTk.PhotoImage(Image.open("img/back.gif"))  # Изображение для кнопки возврата
+        btn_back = tk.Button(toolbar, text='Вернуться к входу', bg='#fe4240', bd=0, image=self.back_img,
                              compound=tk.TOP, command=self.go_back_to_code)
         btn_back.pack(side=tk.LEFT)
 
@@ -257,7 +231,7 @@ class AddUserDialog(tk.Toplevel):
         if not username or not password:
             messagebox.showwarning("Предупреждение", "Заполните все поля!")
             return
-        if len(password) < 1:   # Перед сдачей поменять
+        if len(password) < 6:   # Перед сдачей поменять
             messagebox.showwarning("Предупреждение", "Пароль должен содержать минимум 8 символов!")
             return
         if self.master.db.insert_user(username, password):
@@ -276,8 +250,10 @@ class UpdateUserDialog(AddUserDialog):
         self.entry_name.insert(0, self.master.tree.item(self.master.tree.selection())['values'][1])
         self.entry_pass.insert(0, self.master.tree.item(self.master.tree.selection())['values'][2])
 
-        # Теперь изменяем текст кнопки и команду
-        self.btn_save.config(text="Сохранить изменения", command=self.update_user)
+        self.clear_button = ttk.Button(self, text="Очистить", command=lambda: self.entry_pass.delete(0, tk.END))
+        self.clear_button.place(x=340, y=65)  # Размещаем кнопку справа от поля ввода пароля
+
+        self.btn_save.config(text="Сохранить", command=self.update_user)
 
     def update_user(self):
         user_id = self.master.tree.item(self.master.tree.selection())['values'][0]
