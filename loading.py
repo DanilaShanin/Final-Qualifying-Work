@@ -1,10 +1,11 @@
 
 import time
-from tkinter import tk
+
 import PySide6
 from PySide6.QtWidgets import QApplication, QSplashScreen, QProgressBar
 from PySide6.QtGui import QMovie, QPixmap, QPainter
 from PySide6.QtCore import QSize
+
 from main import Main, main
 from random import randint
 
@@ -54,13 +55,13 @@ def login():
 
     time.sleep(1)
     main()
-    root = tk.Tk()
-    # db = DB()
-    app = Main(root)
-    app.pack()
-    root.title("FootScaut")
-    root.geometry("1400x900+300+200")
-    root.resizable(True, True)
-    root.mainloop()
+    # root = tk.Tk()
+    # # db = DB()
+    # app = Main(root)
+    # app.pack()
+    # root.title("FootScaut")
+    # root.geometry("1400x900+300+200")
+    # root.resizable(True, True)
+    # root.mainloop()
 if __name__ == "__main__":
     login()
