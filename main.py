@@ -1,22 +1,30 @@
 import tkinter as tk
 from tkinter import ttk
 import matplotlib
+
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-import numpy as np
-from PySide6.QtWidgets import QApplication, QSplashScreen, QProgressBar
+
 from model import DB
 import tkinter as tk
-import joblib
+
 import joblib
 from webbrowser import open
-import sklearn
-from sklearn.pipeline import Pipeline
-root=None
+import tensorflow as tf
+from tensorflow import keras
+
+import numpy as np
+
+from tkinter import filedialog
+
+
+root = None
 
 db = DB()
-bar=None
+bar = None
+
+
 class Main(tk.Frame):
     def __init__(self, root):
         super().__init__(root)
@@ -53,19 +61,20 @@ class Main(tk.Frame):
                                 compound=tk.TOP, command=self.view_records)
         btn_refresh.pack(side=tk.LEFT)
 
-        self.helper_img = tk.PhotoImage(file="img/add.gif")
-        btn_open_helper_dialog = tk.Button(toolbar, text='помочник', command=self.open_helper_dialog, bg='#fe4240', bd=0,
-                                    compound=tk.TOP, image=self.add_img)
-        btn_open_helper_dialog.pack(side=tk.LEFT)
+        self.compare_img = tk.PhotoImage(file='img/comparison.gif')
+        btn_compare = tk.Button(toolbar, text='Сравнить авто', bg='#fe4240', bd=0, image=self.compare_img,
+                                compound=tk.TOP, command=self.open_compare_dialog)
+        btn_compare.pack(side=tk.LEFT)
 
-        self.info = tk.PhotoImage(file="img/add.gif")
-        btn_info = tk.Button(toolbar, text='Инструкция', command=self.open_info_dialog, bg='#fe4240', bd=0,
-                                    compound=tk.TOP, image=self.add_img)
+        self.info = tk.PhotoImage(file='img/instructions.gif')
+        btn_info = tk.Button(toolbar, text='Поддержка', command=self.open_info_dialog, bg='#fe4240', bd=0,
+                             compound=tk.TOP, image=self.info)
 
         btn_info.pack(side=tk.RIGHT)
 
-        self.tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
-                                                'City', 'Year', 'Price')
+        self.tree = ttk.Treeview(self, columns=(
+        'ID', 'Make', 'Name', 'Transmission', 'EngineType', 'EngineCapacity', 'Mileage',
+        'City', 'Year', 'Price', 'Trunk', 'Fuel', 'Passengers', 'Doors')
                                  , height=15, show='headings')
         self.tree.column("ID", width=10, anchor=tk.CENTER)
         self.tree.column("Make", width=150, anchor=tk.CENTER)
@@ -77,12 +86,10 @@ class Main(tk.Frame):
         self.tree.column("City", width=150, anchor=tk.CENTER)
         self.tree.column("Year", width=100, anchor=tk.CENTER)
         self.tree.column("Price", width=100, anchor=tk.CENTER)
-        # self.tree.column("pace", width=100, anchor=tk.CENTER)
-        # self.tree.column("shooting", width=100, anchor=tk.CENTER)
-        # self.tree.column("passing", width=100, anchor=tk.CENTER)
-        # self.tree.column("dribbling", width=100, anchor=tk.CENTER)
-        # self.tree.column("defending", width=100, anchor=tk.CENTER)
-        # self.tree.column("physicality", width=100, anchor=tk.CENTER)
+        self.tree.column("Trunk", width=100, anchor=tk.CENTER)
+        self.tree.column("Fuel", width=100, anchor=tk.CENTER)
+        self.tree.column("Passengers", width=100, anchor=tk.CENTER)
+        self.tree.column("Doors", width=100, anchor=tk.CENTER)
 
         self.tree.heading("ID", text='ID')
         self.tree.heading("Make", text='Марка')
@@ -93,12 +100,10 @@ class Main(tk.Frame):
         self.tree.heading("Mileage", text='Пробег')
         self.tree.heading("Year", text='Год выпуска')
         self.tree.heading("Price", text='Цена')
-        # self.tree.heading("pace", text='Скорость')
-        # self.tree.heading("shooting", text='Удар')
-        # self.tree.heading("passing", text='Предачи')
-        # self.tree.heading("dribbling", text='Дриблинг')
-        # self.tree.heading("defending", text='Дриблинг')
-        # self.tree.heading("physicality", text='Физика')
+        self.tree.heading("Trunk", text='Объем багажника')
+        self.tree.heading("Fuel", text='Расход топлива')
+        self.tree.heading("Passengers", text='Количество пассажиров')
+        self.tree.heading("Doors", text='Количество дверей')
 
         self.tree.pack(side=tk.LEFT)
 
@@ -106,14 +111,18 @@ class Main(tk.Frame):
         scroll.pack(side=tk.LEFT, fill=tk.Y)
         self.tree.configure(yscrollcommand=scroll.set)
 
-    def records(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
-        self.db.insert_data(Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price)
+    def records(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price, Trunk, Fuel,
+                Passengers, Doors):
+        self.db.insert_data(Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price, Trunk, Fuel, Passengers, Doors)
         self.view_records()
 
-    def update_record(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price):
+    def update_record(self, Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price, Trunk,
+                      Fuel, Passengers, Doors):
+        print(self.tree.set)
         self.db.c.execute(
-            '''UPDATE carhelper SET Make=?, Name=?, Transmission=?, EngineType=?, EngineCapacity=?, Mileage=?, City=?, Year=?, Price=? WHERE ID=?''',
-            (Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price,
+            '''UPDATE carhelper SET Make=?, Name=?, Transmission=?, EngineType=?, EngineCapacity=?, Mileage=?, City=?, Year=?, Price=?,Trunk=?,Fuel=?,Passengers=?,Doors=? WHERE ID=?''',
+            (Make, Name, Transmission, EngineType, EngineCapacity, Mileage, City, Year, Price, Trunk, Fuel, Passengers,
+             Doors,
              self.tree.set(self.tree.selection()[0], '#1')))
         self.db.conn.commit()
         self.view_records()
@@ -126,7 +135,7 @@ class Main(tk.Frame):
     def delete_records(self):
         for selection_item in self.tree.selection():
             self.db.c.execute('''DELETE FROM carhelper WHERE id=?''', [self.tree.set(selection_item,
-                                                                                         '#1')])
+                                                                                     '#1')])
         self.db.conn.commit()
         self.view_records()
 
@@ -141,7 +150,11 @@ class Main(tk.Frame):
         Mileage|| 
         City || 
         Year || 
-        Price LIKE ?''', name)
+        Price ||
+        Trunk ||
+        Fuel ||
+        Passengers ||
+        Doors LIKE ?''', name)
         [self.tree.delete(i) for i in self.tree.get_children()]
         [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
 
@@ -157,9 +170,176 @@ class Main(tk.Frame):
     def open_info_dialog(self):
         Info()
 
-    def open_helper_dialog(self):
-        Helper()
+    def open_compare_dialog(self):
+        CompareDialog()
 
+    def open_compare_dialog(self):
+        CompareDialog(db=self.db)
+
+    # def open_helper_dialog(self):
+    #     Helper()
+
+class CompareDialog(tk.Toplevel):
+    def __init__(self, db):
+        super().__init__(root)
+        self.db = db  # Сохраняем ссылку на базу данных
+        self.record1 = None  # хранения первой записи
+        self.record2 = None  # хранения второй записи
+        self.init_compare()
+        self.view = app
+
+    def init_compare(self):
+        self.title('Сравнение автомобилей')
+        self.geometry('800x600+400+300')
+        self.resizable(False, False)
+
+        # Дерево для выбора записей
+        self.compare_tree = ttk.Treeview(self, columns=('ID', 'Make', 'Name'),
+                                         height=15, show='headings')
+        self.compare_tree.column("ID", width=10, anchor=tk.CENTER)
+        self.compare_tree.column("Make", width=150, anchor=tk.CENTER)
+        self.compare_tree.column("Name", width=150, anchor=tk.CENTER)
+        self.compare_tree.heading("ID", text='ID')
+        self.compare_tree.heading("Make", text='Марка')
+        self.compare_tree.heading("Name", text='Модель')
+        self.compare_tree.pack(side=tk.LEFT)
+
+        # Область для вывода сравнений
+        self.result_frame = tk.Frame(self)
+        self.result_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
+
+        # Кнопки для выбора записей
+        btn_select1 = ttk.Button(self, text='Выбрать первую запись', command=self.select_first_record)
+        btn_select1.pack(padx=10, pady=10)
+
+        btn_select2 = ttk.Button(self, text='Выбрать вторую запись', command=self.select_second_record)
+        btn_select2.pack(padx=10, pady=10)
+
+        # Кнопка для отображения сравнения
+        btn_compare = ttk.Button(self, text='Сравнить записи', command=self.display_comparison)
+        btn_compare.pack(padx=10, pady=10)
+
+
+        self.fill_compare_tree()
+
+    def select_first_record(self):
+        selected_item = self.compare_tree.selection()
+        if not selected_item:
+            tk.messagebox.showinfo('Ошибка', 'Не выбрана первая запись.')
+            return
+        record_id = self.compare_tree.item(selected_item[0])['values'][0]
+        self.db.c.execute('''SELECT * FROM carhelper WHERE id=?''', (record_id,))
+        self.record1 = self.db.c.fetchone()
+        tk.messagebox.showinfo('Информация', 'Первая запись выбрана.')
+
+    def select_second_record(self):
+        selected_item = self.compare_tree.selection()
+        if not selected_item:
+            tk.messagebox.showinfo('Ошибка', 'Не выбрана вторая запись.')
+            return
+        record_id = self.compare_tree.item(selected_item[0])['values'][0]
+        self.db.c.execute('''SELECT * FROM carhelper WHERE id=?''', (record_id,))
+        self.record2 = self.db.c.fetchone()
+        tk.messagebox.showinfo('Информация', 'Вторая запись выбрана.')
+
+    def display_comparison(self):
+        if self.record1 is None or self.record2 is None:
+            tk.messagebox.showerror('Ошибка', 'Для сравнения выберите обе записи!')
+            return
+
+        for widget in self.result_frame.winfo_children():
+            widget.destroy()
+
+        headers = ['Параметр', 'Запись 1', 'Запись 2']
+        header_row = tk.Frame(self.result_frame)
+        for col, header in enumerate(headers):
+            tk.Label(header_row, text=header, font=('Arial', 14)).grid(row=0, column=col, pady=10)
+        header_row.pack(fill=tk.X)
+
+        parameters = ['Марка', 'Модель', 'Коробка передач', 'Тип двигателя', 'Мощность двигателя',
+                      'Пробег', 'Город', 'Год выпуска', 'Цена', 'Объем багажника',
+                      'Расход топлива', 'Количество пассажиров', 'Количество дверей']
+
+        for idx, param in enumerate(parameters):
+            param_row = tk.Frame(self.result_frame)
+            tk.Label(param_row, text=param, font=(12)).grid(row=idx + 1, column=0, sticky=tk.W)
+
+            # Значения для записей
+            value1 = self.record1[idx + 1]
+            value2 = self.record2[idx + 1]
+
+            # Определяем цвета для определенных параметров
+            bg_color1 = 'white'
+            bg_color2 = 'white'
+
+            if param == 'Пробег':
+                try:
+                    val1 = float(value1)
+                    val2 = float(value2)
+                    if val1 < val2:
+                        bg_color1 = 'lightgreen'
+                        bg_color2 = 'lightcoral'
+                    elif val1 > val2:
+                        bg_color1 = 'lightcoral'
+                        bg_color2 = 'lightgreen'
+                    else:
+                        bg_color1 = bg_color2 = 'lightyellow'
+                except (ValueError, TypeError):
+                    pass
+
+            elif param == 'Год выпуска':
+                try:
+                    val1 = int(value1)
+                    val2 = int(value2)
+                    if val1 > val2:
+                        bg_color1 = 'lightgreen'
+                        bg_color2 = 'lightcoral'
+                    elif val1 < val2:
+                        bg_color1 = 'lightcoral'
+                        bg_color2 = 'lightgreen'
+                    else:
+                        bg_color1 = bg_color2 = 'lightyellow'
+                except (ValueError, TypeError):
+                    pass
+
+            elif param == 'Цена':
+                try:
+                    val1 = float(value1)
+                    val2 = float(value2)
+                    if val1 < val2:
+                        bg_color1 = 'lightgreen'
+                        bg_color2 = 'lightcoral'
+                    elif val1 > val2:
+                        bg_color1 = 'lightcoral'
+                        bg_color2 = 'lightgreen'
+                    else:
+                        bg_color1 = bg_color2 = 'lightyellow'
+                except (ValueError, TypeError):
+                    pass
+
+            elif param == 'Расход топлива':
+                try:
+                    val1 = float(value1)
+                    val2 = float(value2)
+                    if val1 < val2:
+                        bg_color1 = 'lightgreen'
+                        bg_color2 = 'lightcoral'
+                    elif val1 > val2:
+                        bg_color1 = 'lightcoral'
+                        bg_color2 = 'lightgreen'
+                    else:
+                        bg_color1 = bg_color2 = 'lightyellow'
+                except (ValueError, TypeError):
+                    pass
+
+            tk.Label(param_row, text=value1, font=('Arial', 12), bg=bg_color1).grid(row=idx + 1, column=1)
+            tk.Label(param_row, text=value2, font=('Arial', 12), bg=bg_color2).grid(row=idx + 1, column=2)
+            param_row.pack(fill=tk.X)
+    def fill_compare_tree(self):
+        self.db.c.execute('''SELECT id, Make, Name FROM carhelper''')
+        rows = self.db.c.fetchall()
+        for row in rows:
+            self.compare_tree.insert('', 'end', values=row)
 
 
 class Info(tk.Toplevel):
@@ -169,76 +349,27 @@ class Info(tk.Toplevel):
         self.view = app
 
     def init_info(self):
-        self.title('Инструкция')
+        self.title('Поддержка')
         self.geometry('300x150+40+30')
-        #self.resizable(False, False)
+
+        # self.resizable(False, False)
 
         def open_link(event):
             # Ссылка на сайт
-            url = 'https://rutube.ru/video/f8cdfddf0fa59963d92fde841bfde0fb/?r=wd'
+            url = 'https://t.me/CarHelpermsk'
             open(url)
 
-        def open_link1(event):
-            url1 = 'https://example.com'
-            open(url1)
 
-        def open_link2(event):
-            url2 = 'https://example.com'
-            open(url2)
-
-        def open_link3(event):
-            url3 = 'https://example.com'
-            open(url3)
-
-        def open_link4(event):
-            url4 = 'https://example.com'
-            open(url4)
-
-
-        self.title('Пример приложения')
+        self.title('Поддержка')
 
         # Создаем метку с текстом и ссылкой
-        name_label = tk.Label(self, text='Введение:', anchor="w")
+        name_label = tk.Label(self, text='Поддержка:', anchor="w")
         name_label.grid(row=0, column=0, sticky="w")
 
         # Создание метки-ссылки
         link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
         link_label.grid(row=0, column=1, padx=(20, 0))
         link_label.bind('<Button-1>', open_link)
-
-        name_label = tk.Label(self, text='Добавлнение', anchor="w")
-        name_label.grid(row=2, column=0, sticky="w")
-
-        # Создание метки-ссылки
-        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
-        link_label.grid(row=2, column=1, padx=(20, 0))
-        link_label.bind('<Button-1>', open_link1)
-
-        name_label = tk.Label(self, text='Изменение и обнавление', anchor="w")
-        name_label.grid(row=3, column=0, sticky="w")
-
-        # Создание метки-ссылки
-        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
-        link_label.grid(row=3, column=1, padx=(20, 0))
-        link_label.bind('<Button-1>', open_link2)
-
-        name_label = tk.Label(self, text='Удаление', anchor="w")
-        name_label.grid(row=4, column=0, sticky="w")
-
-        # Создание метки-ссылки
-        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
-        link_label.grid(row=4, column=1, padx=(20, 0))
-        link_label.bind('<Button-1>', open_link3)
-
-        name_label = tk.Label(self, text='помощник', anchor="w")
-        name_label.grid(row=5, column=0, sticky="w")
-
-        # Создание метки-ссылки
-        link_label = tk.Label(self, text='Нажмите здесь', fg='blue', cursor='hand2')
-        link_label.grid(row=5, column=1, padx=(20, 0))
-        link_label.bind('<Button-1>', open_link4)
-
-
 
         self.mainloop()
 
@@ -261,21 +392,11 @@ class Helper(tk.Toplevel):
 
         print(eng_cap, mill, year, eng_type, transmission)
 
-
         # Загрузка модели из файла
         self.model = joblib.load('forest_pipe.joblib')
         print(self.model.predict([[eng_cap, mill, year, eng_type, transmission]]))
-        # print(self.model.predict([[self.entry_EngineCapacity.get(),self.entry_Mileage.get(),self.entry_Year.get(),self.EngineType.get(),self.transmission.get()]]))
 
-        # self.entry_Make.get(),
-        # self.entry_Name.get(),
-        # self.transmission.get(),
-        # self.EngineType.get(),
-        # self.entry_EngineCapacity.get(),
-        # self.entry_Mileage.get(),
-        # self.entry_City.get(),
-        # self.entry_Year.get(),
-        # self.entry_Price.get()))
+
 
 class Child(tk.Toplevel):
     def __init__(self):
@@ -283,11 +404,10 @@ class Child(tk.Toplevel):
         self.init_child()
         self.view = app
 
-
     def init_child(self):
         self.title('Добавить')
         self.geometry('1000x1000+400+300')
-        #self.resizable(False, False)
+        # self.resizable(False, False)
 
         label_Make = tk.Label(self, text='Марка:')
         label_Make.place(x=115, y=25)
@@ -304,36 +424,37 @@ class Child(tk.Toplevel):
         label_Year.place(x=115, y=230)
         label_Price = tk.Label(self, text='Цена:')
         label_Price.place(x=115, y=255)
-        # label_pace = tk.Label(self, text='Скорость:')
-        # label_pace.place(x=100, y=225)
-        # label_shooting = tk.Label(self, text='Удар:')
-        # label_shooting.place(x=100, y=250)
-        # label_passing = tk.Label(self, text='Передачи:')
-        # label_passing.place(x=100, y=275)
-        # label_dribbling = tk.Label(self, text='Дриблинг:')
-        # label_dribbling.place(x=100, y=300)
-        # label_defending = tk.Label(self, text='Оборона:')
-        # label_defending.place(x=100, y=325)
-        # label_physicality = tk.Label(self, text='Физика:')
-        # label_physicality.place(x=100, y=350)
-        #
-        # self.var = tk.StringVar()
-        # self.var.trace_add("write", self.graf)
-        #
-        # self.var1 = tk.StringVar()
-        # self.var1.trace_add("write", self.graf)
-        #
-        # self.var2 = tk.StringVar()
-        # self.var2.trace_add("write", self.graf)
-        #
-        # self.var3 = tk.StringVar()
-        # self.var3.trace_add("write", self.graf)
-        #
-        # self.var4 = tk.StringVar()
-        # self.var4.trace_add("write", self.graf)
-        #
-        # self.var5 = tk.StringVar()
-        # self.var5.trace_add("write", self.graf)
+        label_Trunk = tk.Label(self, text='Объем багажника:')
+        label_Trunk.place(x=100, y=280)
+        label_Fuel = tk.Label(self, text='Расход топлива:')
+        label_Fuel.place(x=100, y=305)
+        label_Passengers = tk.Label(self, text='Количество пассажирв:')
+        label_Passengers.place(x=100, y=330)
+        label_Doors = tk.Label(self, text='Количество дверей:')
+        label_Doors.place(x=100, y=355)
+
+        self.var = tk.StringVar()
+        self.var.trace_add("write", self.graf)
+
+        self.var1 = tk.StringVar()
+        self.var1.trace_add("write", self.graf)
+
+        self.var2 = tk.StringVar()
+        self.var2.trace_add("write", self.graf)
+
+        self.var3 = tk.StringVar()
+        self.var3.trace_add("write", self.graf)
+
+        self.var4 = tk.StringVar()
+        self.var4.trace_add("write", self.graf)
+
+        self.var5 = tk.StringVar()
+        self.var5.trace_add("write", self.graf)
+        self.var6 = tk.StringVar()
+        self.var6.trace_add("write", self.graf)
+
+        self.var7 = tk.StringVar()
+        self.var7.trace_add("write", self.graf)
 
         self.entry_Make = ttk.Entry(self)
         self.entry_Make.place(x=250, y=25)
@@ -353,69 +474,51 @@ class Child(tk.Toplevel):
         tk.Label(self, text="Тип двигателя:").place(x=100, y=130)
         tk.OptionMenu(self, self.EngineType, *Engine_types).place(x=250, y=130)
 
-
-        self.entry_EngineCapacity = ttk.Entry(self)
+        self.entry_EngineCapacity = ttk.Entry(self, textvariable=self.var)
         self.entry_EngineCapacity.place(x=250, y=155)
 
-        self.entry_Mileage = ttk.Entry(self)
+        self.entry_Mileage = ttk.Entry(self, textvariable=self.var1)
         self.entry_Mileage.place(x=250, y=180)
 
         self.entry_City = ttk.Entry(self)
         self.entry_City.place(x=250, y=205)
 
-        self.entry_Year = ttk.Entry(self)
+        self.entry_Year = ttk.Entry(self, textvariable=self.var2)
         self.entry_Year.place(x=250, y=230)
 
-        self.entry_Price = ttk.Entry(self)
+        self.entry_Price = ttk.Entry(self, textvariable=self.var3)
         self.entry_Price.place(x=250, y=255)
 
-        # self.entry_pace = ttk.Entry(self, textvariable=self.var)
-        # self.entry_pace.place(x=200, y=225)
-        #
-        # self.entry_shooting = ttk.Entry(self, textvariable=self.var1)
-        # self.entry_shooting.place(x=200, y=250)
-        #
-        # self.entry_passing = ttk.Entry(self, textvariable=self.var2)
-        # self.entry_passing.place(x=200, y=275)
-        #
-        # self.entry_dribbling = ttk.Entry(self, textvariable=self.var3)
-        # self.entry_dribbling.place(x=200, y=300)
-        #
-        # self.entry_defending = ttk.Entry(self, textvariable=self.var4)
-        # self.entry_defending.place(x=200, y=325)
-        #
-        # self.entry_physicality = ttk.Entry(self, textvariable=self.var5)
-        # self.entry_physicality.place(x=200, y=350)
-        #
-        # f = Figure(figsize=(5, 5), dpi=100)
-        # a = f.add_subplot(111, projection='polar')
-        #
-        # labels = ["Скорость", "Удар", "Передачи", "Дриблинг", "Оборона", "Физика"]
-        #
-        # r = [100, 7, 9, 6, 1, 8]
-        # theta = np.deg2rad(np.linspace(0, 360, 7))
-        #
-        # a.axes.set_xticklabels(labels)
-        # a.axes.set_ylim(100)
-        # a.axes.set_xticks(theta)
-        # a.axes.plot(theta, self._get_r(r), color='black')
-        #
-        # self.ax = a.axes
-        #
-        # self.canvas = FigureCanvasTkAgg(f, self)
-        # self.canvas.draw()
-        # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+        self.entry_Trunk = ttk.Entry(self, textvariable=self.var4)
+        self.entry_Trunk.place(x=250, y=280)
 
-        # btn_pred = ttk.Button(self, text='Predict', command=lambda: Helper(self.entry_EngineCapacity.get(),self.entry_Mileage.get(),self.entry_Year.get(),self.EngineType.get(),self.transmission.get()))
-        # btn_pred = ttk.Button(self, text='Predict', command=Helper)
+        self.entry_Fuel = ttk.Entry(self, textvariable=self.var5)
+        self.entry_Fuel.place(x=250, y=305)
+
+        self.entry_Passengers = ttk.Entry(self, textvariable=self.var6)
+        self.entry_Passengers.place(x=250, y=330)
+
+        self.entry_Doors = ttk.Entry(self, textvariable=self.var7)
+        self.entry_Doors.place(x=250, y=355)
+
+        f = Figure(figsize=(8, 8), dpi=50)
+        a = f.add_subplot(111, projection='polar')
+
+        labels = ["Мощность двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива",
+                  "Количество пассажирв", "Количество дверей"]
+
+
         btn_pred = ttk.Button(self, text='Анализ цены', command=self.pred_m)
-        btn_pred.place(x=100, y=500)
+        btn_pred.place(x=100, y=600)
+
+        btn_pred = ttk.Button(self, text='Оценка авто', command=self.evaluate_car)
+        btn_pred.place(x=200, y=700)
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
-        btn_cancel.place(x=400, y=500)
+        btn_cancel.place(x=400, y=600)
 
         self.btn_ok = ttk.Button(self, text='Добавить')
-        self.btn_ok.place(x=250, y=500)
+        self.btn_ok.place(x=250, y=600)
         self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_Make.get(),
                                                                        self.entry_Name.get(),
                                                                        self.transmission.get(),
@@ -424,10 +527,60 @@ class Child(tk.Toplevel):
                                                                        self.entry_Mileage.get(),
                                                                        self.entry_City.get(),
                                                                        self.entry_Year.get(),
-                                                                       self.entry_Price.get()))
+                                                                       self.entry_Price.get(),
+                                                                       self.entry_Trunk.get(),
+                                                                       self.entry_Fuel.get(),
+                                                                       self.entry_Passengers.get(),
+                                                                       self.entry_Doors.get()))
 
         self.grab_set()
         self.focus_set()
+
+        f = Figure(figsize=(8, 8), dpi=100)
+        f.set_size_inches(5, 5)
+        a = f.add_subplot(111, projection='polar')
+        self.ax = a.axes
+
+        self.canvas = FigureCanvasTkAgg(f, self)
+
+        self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+
+    def evaluate_car(self):
+
+        # Размеры изображения
+        img_width, img_height = 150, 150
+
+        # Загрузка модели для распознавания повреждений
+        model = keras.models.load_model('/Users/danilashanin/Desktop/Диплом/CarHelper/best_modelll.h5')
+
+        # Параметры директории и классов
+        files = filedialog.askopenfiles()
+        path = ''
+        if len(files) != 0:
+            path = files[0].name
+        val_dir = path  # '/Users/danilashanin/Desktop/Диплом/CarHelper/7905.jpg'
+        class_names = ["00-good", "01-minor", "02-moderate", "03-severe"]
+
+
+        if True:
+            # Загружаем изображение
+            img = tf.keras.preprocessing.image.load_img(val_dir, target_size=(img_width, img_height))
+            img = tf.keras.preprocessing.image.img_to_array(img)
+            img = img / 255.0
+            img = tf.expand_dims(img, axis=0)
+
+            # Делаем предсказание
+            pred = model.predict(img)
+            pred_label = class_names[np.argmax(pred)]
+            print(pred_label)
+            car_rate = {
+                '00-good': 1,
+                '01-minor': 0.93,
+                '02-moderate': 0.7,
+                '03-severe': 0.3
+            }
+            self.var3.set(float(self.entry_Price.get()) * car_rate[pred_label])
+            print(self.entry_Price)
 
     def pred_m(self):
         eng_type = self.EngineType.get()
@@ -446,44 +599,68 @@ class Child(tk.Toplevel):
 
         # print(eng_cap, mill, year, eng_type, transmission)
 
-
         # Загрузка модели из файла
         self.model = joblib.load('forest_pipe.joblib')
         value = self.model.predict([[self.entry_EngineCapacity.get(),
-                                    self.entry_Mileage.get(),
-                                   self.entry_Year.get(), eng_type, transmission]])
+                                     self.entry_Mileage.get(),
+                                     self.entry_Year.get(), eng_type, transmission]])
         self.entry_Price.delete(0, tk.END)
-        self.entry_Price.insert(0,round(value[0],2))
+        self.entry_Price.insert(0, round(value[0], 2))
+        # self.entry_Price=[]
 
-    # def graf(self, name, index,mode, *args):
-    #     try:
-    #
-    #         # f = Figure(figsize=(5, 5), dpi=100)
-    #         # a = f.add_subplot(111, projection='polar')
-    #         #
-    #         labels = ["Скорость", "Удар", "Передачи", "Дриблинг", "Оборона", "Физика"]
-    #
-    #         r = [int(self.var.get()),
-    #              int(self.var1.get()),
-    #              int(self.var2.get()),
-    #              int(self.var3.get()),
-    #              int(self.var4.get()),
-    #              int(self.var5.get())]
-    #         theta = np.deg2rad(np.linspace(0, 360, 7))
-    #         self.ax.clear()
-    #         self.ax.set_xticklabels(labels)
-    #         #
-    #         self.ax.set_xticks(theta)
-    #         self.ax.plot(theta, self._get_r(r), color='black')
-    #         # self.canvas.delete('all')
-    #         # self.canvas = FigureCanvasTkAgg(f, self)
-    #         self.canvas.draw()
-    #         # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
-    #     except:
-    #         pass
+        # f = Figure(figsize=(8, 8), dpi=100)
+        # a = f.add_subplot(111, projection='polar')
+        #
+        # labels = ["Мощность двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива", "Количество пассажирв", "Количество дверей"]
+
+        # r = [100, 7, 9, 6, 1, 8,8,8]
+        # theta = np.deg2rad(np.linspace(0, 360, 9))
+        #
+        # a.axes.set_xticklabels(labels)
+        # a.axes.set_ylim(100)
+        # a.axes.set_xticks(theta)
+        # a.axes.plot(theta, self._get_r(r), color='black')
+        #
+        # self.ax = a.axes
+        #
+        # self.canvas = FigureCanvasTkAgg(f, self)
+        # self.canvas.draw()
+        # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+
+    def graf(self, name, index, mode, *args):
+        # try:
+        if 1:
+            # f = Figure(figsize=(8, 8), dpi=100)
+            # a = f.add_subplot(111, projection='polar')
+            # self.ax = a.axes
+
+            labels = ["Мощность двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива",
+                      "Количество пассажирв", "Количество дверей"]
+
+            theta = np.deg2rad(np.linspace(0, 360, 9))
+            r = [float(self.var.get()),
+                 float(self.var1.get()),
+                 float(self.var2.get()),
+                 float(self.var3.get()),
+                 float(self.var4.get()),
+                 float(self.var5.get()),
+                 float(self.var6.get()),
+                 float(self.var7.get())]
+            self.ax.clear()
+            self.ax.set_xticklabels(labels)
+            self.ax.set_yscale('log')
+            self.ax.set_xticks(theta)
+            self.ax.plot(theta, self._get_r(r), color='black')
+            # self.canvas.delete('all')
+            # self.canvas = FigureCanvasTkAgg(f, self)
+            self.canvas.draw()
+            # self.canvas.get_tk_widget().pack(side=tk.RIGHT)
+        # except:
+        #     pass
 
     def _get_r(self, r):
         return [*r, r[0]]
+
 
 class Update(Child):
     def __init__(self):
@@ -498,20 +675,19 @@ class Update(Child):
         btn_edit = ttk.Button(self, text='Изменить')
         btn_edit.place(x=200, y=500)
         btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_Make.get(),
-                                                                            self.entry_Name.get(),
-                                                                            self.transmission.get(),
-                                                                            self.EngineType.get(),
-                                                                            self.entry_EngineCapacity.get(),
-                                                                            self.entry_Mileage.get(),
-                                                                            self.entry_City.get(),
-                                                                            self.entry_Year.get(),
-                                                                            self.entry_Price.get()))
-                                                                          # self.entry_pace.get(),
-                                                                          # self.entry_shooting.get(),
-                                                                          # self.entry_passing.get(),
-                                                                          # self.entry_dribbling.get(),
-                                                                          # self.entry_defending.get(),
-                                                                          # self.entry_physicality.get()))
+                                                                          self.entry_Name.get(),
+                                                                          self.transmission.get(),
+                                                                          self.EngineType.get(),
+                                                                          self.entry_EngineCapacity.get(),
+                                                                          self.entry_Mileage.get(),
+                                                                          self.entry_City.get(),
+                                                                          self.entry_Year.get(),
+                                                                          self.entry_Price.get(),
+                                                                          self.entry_Trunk.get(),
+                                                                          self.entry_Fuel.get(),
+                                                                          self.entry_Passengers.get(),
+                                                                          self.entry_Doors.get()))
+
         self.btn_ok.destroy()
 
     def default_data(self):
@@ -527,13 +703,11 @@ class Update(Child):
         self.entry_City.insert(0, row[7])
         self.entry_Year.insert(0, row[8])
         self.entry_Price.insert(0, row[9])
-        # self.entry_pace.insert(0, row[9])
-        # self.entry_shooting.insert(0, row[10])
-        # self.entry_passing.insert(0, row[11])
-        # self.entry_dribbling.insert(0, row[12])
-        # self.entry_defending.insert(0, row[13])
-        # self.entry_physicality.insert(0, row[14])
-
+        self.entry_Trunk.insert(0, row[10])
+        self.entry_Fuel.insert(0, row[11])
+        self.entry_Passengers.insert(0, row[12])
+        self.entry_Doors.insert(0, row[13])
+        self.entry_Price.insert(0, row[14])
 
 
 class Search(tk.Toplevel):
@@ -562,11 +736,9 @@ class Search(tk.Toplevel):
         btn_search.bind('<Button-1>', lambda event: self.destroy(), add='+')
 
 
-
-
-
 def update_progress(value):
     bar.step(value)
+
 
 def navigate_to_app(root):
     update_progress(100)
@@ -574,28 +746,11 @@ def navigate_to_app(root):
     root.quit()
 
 
-# def screensaver():
-#     from tk_loader import Screensaver
-#     from random import randint
-#
-#     global bar
-#
-#     saver = tk.Tk()
-#     load_screen = Screensaver(saver, progress_func=update_progress, go_next=lambda: navigate_to_app(saver))
-#
-#     # image_id = randint(1, 4)
-#     # load_screen.play_gif(f'loading_gifs/{image_id}.gif', 0.03)
-#
-#     bar = ttk.Progressbar(orient='horizontal')
-#     bar.pack(fill='both')
-#     saver.title("FootScaut")
-#     saver.mainloop()
 def main():
-
-# if __name__ == "__main__":
+    # if __name__ == "__main__":
     # screensaver()
     global app
-    
+
     root = tk.Tk()
     db = DB()
     app = Main(root)
