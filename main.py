@@ -81,7 +81,7 @@ class Main(tk.Frame):
         self.tree.column("Name", width=55, anchor=tk.CENTER)
         self.tree.column("Transmission", width=55, anchor=tk.CENTER)
         self.tree.column("EngineType", width=150, anchor=tk.CENTER)
-        self.tree.column("EngineCapacity", width=400, anchor=tk.CENTER)
+        self.tree.column("EngineCapacity", width=150, anchor=tk.CENTER)
         self.tree.column("Mileage", width=100, anchor=tk.CENTER)
         self.tree.column("City", width=150, anchor=tk.CENTER)
         self.tree.column("Year", width=100, anchor=tk.CENTER)
@@ -98,6 +98,7 @@ class Main(tk.Frame):
         self.tree.heading("EngineType", text='Тип двигателя')
         self.tree.heading("EngineCapacity", text='Мощьность двигателя')
         self.tree.heading("Mileage", text='Пробег')
+        self.tree.heading("City", text='Город')
         self.tree.heading("Year", text='Год выпуска')
         self.tree.heading("Price", text='Цена')
         self.tree.heading("Trunk", text='Объем багажника')
@@ -253,10 +254,10 @@ class CompareDialog(tk.Toplevel):
         headers = ['Параметр', 'Запись 1', 'Запись 2']
         header_row = tk.Frame(self.result_frame)
         for col, header in enumerate(headers):
-            tk.Label(header_row, text=header, font=('Arial', 14)).grid(row=0, column=col, pady=10)
+            tk.Label(header_row, text=header, font=(14)).grid(row=0, column=col, pady=10)
         header_row.pack(fill=tk.X)
 
-        parameters = ['Марка', 'Модель', 'Коробка передач', 'Тип двигателя', 'Мощность двигателя',
+        parameters = ['Марка', 'Модель', 'Коробка передач', 'Тип двигателя', 'Объем двигателя',
                       'Пробег', 'Город', 'Год выпуска', 'Цена', 'Объем багажника',
                       'Расход топлива', 'Количество пассажиров', 'Количество дверей']
 
@@ -332,8 +333,8 @@ class CompareDialog(tk.Toplevel):
                 except (ValueError, TypeError):
                     pass
 
-            tk.Label(param_row, text=value1, font=('Arial', 12), bg=bg_color1).grid(row=idx + 1, column=1)
-            tk.Label(param_row, text=value2, font=('Arial', 12), bg=bg_color2).grid(row=idx + 1, column=2)
+            tk.Label(param_row, text=value1, font=(12), bg=bg_color1).grid(row=idx + 1, column=1)
+            tk.Label(param_row, text=value2, font=(12), bg=bg_color2).grid(row=idx + 1, column=2)
             param_row.pack(fill=tk.X)
     def fill_compare_tree(self):
         self.db.c.execute('''SELECT id, Make, Name FROM carhelper''')
@@ -414,7 +415,7 @@ class Child(tk.Toplevel):
         label_Name = tk.Label(self, text='Наименование:')
         label_Name.place(x=115, y=50)
 
-        label_EngineCapacity = tk.Label(self, text='Мощность ДВС:')
+        label_EngineCapacity = tk.Label(self, text='Объем ДВС:')
         label_EngineCapacity.place(x=115, y=155)
         label_Mileage = tk.Label(self, text='Пробег:')
         label_Mileage.place(x=115, y=180)
@@ -504,7 +505,7 @@ class Child(tk.Toplevel):
         f = Figure(figsize=(8, 8), dpi=50)
         a = f.add_subplot(111, projection='polar')
 
-        labels = ["Мощность двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива",
+        labels = ["Объем двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива",
                   "Количество пассажирв", "Количество дверей"]
 
 
@@ -634,7 +635,7 @@ class Child(tk.Toplevel):
             # a = f.add_subplot(111, projection='polar')
             # self.ax = a.axes
 
-            labels = ["Мощность двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива",
+            labels = ["Объем двигателя", "Пробег", "год", "Цена", "Объем багажника", "Расход топлива",
                       "Количество пассажирв", "Количество дверей"]
 
             theta = np.deg2rad(np.linspace(0, 360, 9))
@@ -673,7 +674,7 @@ class Update(Child):
     def init_edit(self):
         self.title('Внесение изменений')
         btn_edit = ttk.Button(self, text='Изменить')
-        btn_edit.place(x=200, y=500)
+        btn_edit.place(x=250, y=600)
         btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_Make.get(),
                                                                           self.entry_Name.get(),
                                                                           self.transmission.get(),
